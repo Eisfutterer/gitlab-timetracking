@@ -8,6 +8,7 @@ import { ProjectMetrics } from '@/types/dashboard';
 
 interface TimeSeriesChartsProps {
     projectMetrics: ProjectMetrics;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     lineData: Array<Record<string, any>>;
     barData: Array<{name: string; value: number}>;
     TEAM_COLORS: string[];

@@ -1,8 +1,18 @@
-import TimeTrackingDashboard from "@/components/TimeTrackingDashboard";
+import { fetchAllIssues, fetchAllTimelogs } from '@/lib/gitlab';
+import { processChartData } from '@/lib/processData';
+import DashboardShell from '@/components/DashboardShell';
 
-export default function Home() {
-  return (
-      /* ADAPT THE DATES HERE ACCORDINGLY*/
-    <TimeTrackingDashboard startDate={new Date("2024-10-01")} endDate={new Date("2025-07-01")} />
-  );
+// ADAPT THE DATES HERE ACCORDINGLY
+const START_DATE = new Date('2026-09-01');
+const END_DATE = new Date('2027-09-01');
+
+export default async function Home() {
+    const [issues, timelogs] = await Promise.all([
+        fetchAllIssues(),
+        fetchAllTimelogs(START_DATE, END_DATE),
+    ]);
+
+    const chartData = processChartData(issues, timelogs);
+
+    return <DashboardShell {...chartData} issues={issues} />;
 }

@@ -1,19 +1,13 @@
 // GitLab Configuration
 export const GITLAB_CONFIG = {
     API_URL: 'https://gitlab.com/api/graphql',
-    GROUP_PATH: 'dhbw-se/se-tinf23b6/g3-dashify',
-    TOKEN: 'TOKEN',
-    ISSUE_BASE_URL: 'https://gitlab.com/dhbw-se/se-tinf23b6/g3-dashify/-/issues'
+    GROUP_PATH: 'dhbw-se/software-engineering-i-tinf25b6/g4-mergeconflict',
+    ISSUE_BASE_URL: 'https://gitlab.com/dhbw-se/software-engineering-i-tinf25b6/g4-mergeconflict/-/issues'
 } as const;
 
 // Team Members
 export const TEAM_MEMBERS = [
-    "FloHochSchule",
-    "EinsEli", 
-    "J.L.V",
-    "nisaphie",
-    "aghyy",
-    "CubePixels"
+    "Eisfutterer"
 ] as const;
 
 // Category Configuration
