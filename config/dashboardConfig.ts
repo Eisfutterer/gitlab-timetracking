@@ -12,24 +12,28 @@ export const TEAM_MEMBERS = [
 
 // Category Configuration
 export const CATEGORIES = {
+    FRONTEND: "Frontend",
+    BACKEND: "Backend",
+    TESTING: "Testing",
+    PROJEKTMANAGEMENT: "Projektmanagement",
+    DOKUMENTATION: "Dokumentation",
     REQUIREMENTS_ENGINEERING: "Requirements Engineering",
-    ENTWURF: "Entwurf", 
-    IMPLEMENTATION_TEST: "Implementation & Test",
-    PROJEKTMANAGEMENT: "Projektmanagement"
 } as const;
 
 export const CATEGORY_MAP = {
-    [CATEGORIES.REQUIREMENTS_ENGINEERING]: 0,
-    [CATEGORIES.ENTWURF]: 0,
-    [CATEGORIES.IMPLEMENTATION_TEST]: 0,
+    [CATEGORIES.FRONTEND]: 0,
+    [CATEGORIES.BACKEND]: 0,
+    [CATEGORIES.TESTING]: 0,
     [CATEGORIES.PROJEKTMANAGEMENT]: 0,
+    [CATEGORIES.DOKUMENTATION]: 0,
+    [CATEGORIES.REQUIREMENTS_ENGINEERING]: 0,
 } as const;
 
 export const CATEGORY_LIST = Object.values(CATEGORIES);
 
 // Color Schemes
 export const COLORS = {
-    PRIMARY: ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'],
+    PRIMARY: ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'],
     TEAM: [
         '#0088FE', // Blau
         '#00C49F', // Türkis
@@ -46,10 +50,12 @@ export const COLORS = {
     ],
     HEATMAP: ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39'],
     CATEGORY: {
-        [CATEGORIES.REQUIREMENTS_ENGINEERING]: '#8884d8', // Blau
-        [CATEGORIES.ENTWURF]: '#82ca9d', // Grün
-        [CATEGORIES.IMPLEMENTATION_TEST]: '#ffc658', // Gelb
-        [CATEGORIES.PROJEKTMANAGEMENT]: '#ff8042', // Orange
+        [CATEGORIES.FRONTEND]: '#0088FE',       // Blau
+        [CATEGORIES.BACKEND]: '#00C49F',         // Türkis
+        [CATEGORIES.TESTING]: '#FFBB28',         // Gelb
+        [CATEGORIES.PROJEKTMANAGEMENT]: '#FF8042', // Orange
+        [CATEGORIES.DOKUMENTATION]: '#8884D8',   // Lila
+        [CATEGORIES.REQUIREMENTS_ENGINEERING]: '#82CA9D', // Grün
     }
 } as const;
 
