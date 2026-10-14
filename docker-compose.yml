@@ -1,0 +1,9 @@
+services:
+  gitlab-timetracking:
+    build: .
+    container_name: gitlab-timetracking
+    restart: unless-stopped
+    ports:
+      - "4823:4823"
+    env_file:
+      - .env.local
