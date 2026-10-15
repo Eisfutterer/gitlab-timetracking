@@ -3,7 +3,7 @@
 import React from 'react';
 import { COLORS, TIME_CONFIG } from '../config/dashboardConfig';
 import { ChartData } from '../lib/processData';
-import { Issue } from '../types/dashboard';
+import { Issue, Epic } from '../types/dashboard';
 
 import ProjectOverview from './ProjectOverview';
 import TimeSeriesCharts from './TimeSeriesCharts';
@@ -13,9 +13,11 @@ import TeamCollaboration from './TeamCollaboration';
 import IssueAnalysis from './IssueAnalysis';
 import IssueTimeAnalysis from './IssueTimeAnalysis';
 import DetailedActivity from './DetailedActivity';
+import EpicGraph from './EpicGraph';
 
 interface DashboardShellProps extends ChartData {
     issues: Issue[];
+    epics: Epic[];
 }
 
 const formatTime = (seconds: number): string => {
@@ -35,9 +37,12 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
     collaborationData,
     productivityPatterns,
     issues,
+    epics,
 }) => {
     return (
         <div className="mt-8 space-y-10">
+            <EpicGraph epics={epics} />
+
             <ProjectOverview
                 projectMetrics={projectMetrics}
                 issues={issues}

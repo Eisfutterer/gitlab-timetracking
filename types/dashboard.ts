@@ -9,6 +9,26 @@ export interface Issue {
     };
 }
 
+export interface EpicIssue {
+    title: string;
+    iid: string;
+    state: 'opened' | 'closed';
+    labels: { nodes: Array<{title: string}> };
+    timeEstimate: number;
+    totalTimeSpent: number;
+}
+
+export interface Epic {
+    id: string;
+    iid: string;
+    title: string;
+    state: 'opened' | 'closed';
+    createdAt: string;
+    closedAt: string | null;
+    issues: { nodes: EpicIssue[] };
+    children: { nodes: Epic[] };
+}
+
 export interface Timelog {
     user: { name: string };
     issue: {

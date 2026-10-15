@@ -1,5 +1,5 @@
 import { GITLAB_CONFIG, TEAM_MEMBERS } from '@/config/dashboardConfig';
-import { Issue, Timelog } from '@/types/dashboard';
+import { Issue, Timelog, Epic } from '@/types/dashboard';
 
 const TOKEN = process.env.GITLAB_TOKEN!;
 
@@ -105,3 +105,64 @@ async function fetchTimelogsForUser(username: string, startDate: Date, endDate: 
 
     return allTimelogs;
 }
+
+export async function fetchEpics(): Promise<Epic[]> {
+    let allEpics: Epic[] = [];
+    let hasNextPage = true;
+    let endCursor: string | null = null;
+
+    while (hasNextPage) {
+        const data = await graphql(`
+            {
+                group(fullPath: "${GITLAB_CONFIG.GROUP_PATH}") {
+                    epics(first: 50, after: ${endCursor ? `"${endCursor}"` : 'null'}) {
+                        nodes {
+                            id iid title state createdAt closedAt
+                            issues {
+                                nodes {
+                                    title iid state
+                                    labels { nodes { title } }
+                                    timeEstimate totalTimeSpent
+                                }
+                            }
+                            children {
+                                nodes {
+                                    id iid title state createdAt closedAt
+                                    issues {
+                                        nodes {
+                                            title iid state
+                                            labels { nodes { title } }
+                                            timeEstimate totalTimeSpent
+                                        }
+                                    }
+                                    children {
+                                        nodes {
+                                            id iid title state createdAt closedAt
+                                            issues {
+                                                nodes {
+                                                    title iid state
+                                                    labels { nodes { title } }
+                                                    timeEstimate totalTimeSpent
+                                                }
+                                            }
+                                            children { nodes { id iid title state createdAt closedAt issues { nodes { title iid state labels { nodes { title } } timeEstimate totalTimeSpent } } children { nodes { id iid title state } } } }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        pageInfo { hasNextPage endCursor }
+                    }
+                }
+            }
+        `);
+
+        const epicsData = data.group.epics;
+        allEpics = [...allEpics, ...epicsData.nodes];
+        hasNextPage = epicsData.pageInfo.hasNextPage;
+        endCursor = epicsData.pageInfo.endCursor;
+    }
+
+    return allEpics;
+}
+
