@@ -118,36 +118,12 @@ export async function fetchEpics(): Promise<Epic[]> {
                     epics(first: 50, after: ${endCursor ? `"${endCursor}"` : 'null'}) {
                         nodes {
                             id iid title state createdAt closedAt
+                            parent { id }
                             issues {
                                 nodes {
                                     title iid state
                                     labels { nodes { title } }
                                     timeEstimate totalTimeSpent
-                                }
-                            }
-                            children {
-                                nodes {
-                                    id iid title state createdAt closedAt
-                                    issues {
-                                        nodes {
-                                            title iid state
-                                            labels { nodes { title } }
-                                            timeEstimate totalTimeSpent
-                                        }
-                                    }
-                                    children {
-                                        nodes {
-                                            id iid title state createdAt closedAt
-                                            issues {
-                                                nodes {
-                                                    title iid state
-                                                    labels { nodes { title } }
-                                                    timeEstimate totalTimeSpent
-                                                }
-                                            }
-                                            children { nodes { id iid title state createdAt closedAt issues { nodes { title iid state labels { nodes { title } } timeEstimate totalTimeSpent } } children { nodes { id iid title state } } } }
-                                        }
-                                    }
                                 }
                             }
                         }
@@ -163,6 +139,21 @@ export async function fetchEpics(): Promise<Epic[]> {
         endCursor = epicsData.pageInfo.endCursor;
     }
 
-    return allEpics;
+    // Build tree from flat list using parent references
+    const epicMap = new Map<string, Epic & { parent?: { id: string } }>(
+        allEpics.map(e => [e.id, { ...e, children: { nodes: [] } }])
+    );
+
+    const roots: Epic[] = [];
+    epicMap.forEach(epic => {
+        const parent = (epic as Epic & { parent?: { id: string } }).parent;
+        if (parent?.id && epicMap.has(parent.id)) {
+            epicMap.get(parent.id)!.children.nodes.push(epic);
+        } else {
+            roots.push(epic);
+        }
+    });
+
+    return roots;
 }
 

@@ -113,19 +113,14 @@ interface EpicGraphProps {
 }
 
 export default function EpicGraph({ epics }: EpicGraphProps) {
-    const childIds = new Set(
-        epics.flatMap(e => e.children.nodes.map(c => c.id))
-    );
-    const rootEpics = epics.filter(e => !childIds.has(e.id));
-
     return (
         <div className="bg-white p-6 rounded-lg shadow">
             <h2 className="text-xl font-bold mb-6 text-gray-800">Epics & Issues</h2>
             <div className="space-y-6">
-                {rootEpics.map(epic => (
+                {epics.map(epic => (
                     <EpicNode key={epic.id} epic={epic} depth={0} />
                 ))}
-                {rootEpics.length === 0 && (
+                {epics.length === 0 && (
                     <p className="text-gray-400 text-sm">Keine Epics gefunden.</p>
                 )}
             </div>
