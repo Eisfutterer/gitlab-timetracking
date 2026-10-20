@@ -1,10 +1,11 @@
 "use client"
 
-import React from 'react';
+import React, { useState } from 'react';
 import { COLORS, TIME_CONFIG } from '../config/dashboardConfig';
 import { ChartData } from '../lib/processData';
 import { Issue, Epic } from '../types/dashboard';
 
+import Navbar from './Navbar';
 import ProjectOverview from './ProjectOverview';
 import TimeSeriesCharts from './TimeSeriesCharts';
 import TeamAndCategories from './TeamAndCategories';
@@ -26,6 +27,8 @@ const formatTime = (seconds: number): string => {
     return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}h`;
 };
 
+const SECTION_IDS = ['epics', 'overview', 'activity', 'timeseries', 'team', 'productivity', 'collaboration', 'issues'];
+
 const DashboardShell: React.FC<DashboardShellProps> = ({
     pieData,
     lineData,
@@ -39,54 +42,83 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
     issues,
     epics,
 }) => {
+    const [activeSection, setActiveSection] = useState<string>('epics');
+
+    const handleSectionChange = (id: string) => {
+        setActiveSection(id);
+        if (!SECTION_IDS.includes(id)) return;
+        const el = document.getElementById(`section-${id}`);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
     return (
-        <div className="mt-8 space-y-10">
-            <EpicGraph epics={epics} />
+        <>
+            <Navbar activeSection={activeSection} onSectionChange={handleSectionChange} />
+            <div className="mx-auto max-w-screen-2xl px-4 py-8 space-y-10">
 
-            <ProjectOverview
-                projectMetrics={projectMetrics}
-                issues={issues}
-            />
+                <section id="section-epics">
+                    <EpicGraph epics={epics} />
+                </section>
 
-            <DetailedActivity
-                heatmapData={heatmapData}
-                HEATMAP_COLORS={[...COLORS.HEATMAP]}
-                formatTime={formatTime}
-            />
+                <section id="section-overview">
+                    <ProjectOverview
+                        projectMetrics={projectMetrics}
+                        issues={issues}
+                    />
+                </section>
 
-            <TimeSeriesCharts
-                projectMetrics={projectMetrics}
-                lineData={lineData}
-                barData={barData}
-                TEAM_COLORS={[...COLORS.TEAM]}
-                COLORS={[...COLORS.PRIMARY]}
-            />
+                <section id="section-activity">
+                    <DetailedActivity
+                        heatmapData={heatmapData}
+                        HEATMAP_COLORS={[...COLORS.HEATMAP]}
+                        formatTime={formatTime}
+                    />
+                </section>
 
-            <TeamAndCategories
-                pieData={pieData}
-                barData={barData}
-                COLORS={[...COLORS.PRIMARY]}
-            />
+                <section id="section-timeseries">
+                    <TimeSeriesCharts
+                        projectMetrics={projectMetrics}
+                        lineData={lineData}
+                        barData={barData}
+                        TEAM_COLORS={[...COLORS.TEAM]}
+                        COLORS={[...COLORS.PRIMARY]}
+                    />
+                </section>
 
-            <ProductivityAnalysis
-                productivityPatterns={productivityPatterns}
-            />
+                <section id="section-team">
+                    <TeamAndCategories
+                        pieData={pieData}
+                        barData={barData}
+                        COLORS={[...COLORS.PRIMARY]}
+                    />
+                </section>
 
-            <TeamCollaboration
-                collaborationData={collaborationData}
-                averageTeamMembersData={averageTeamMembersData}
-                COLORS={[...COLORS.PRIMARY]}
-            />
+                <section id="section-productivity">
+                    <ProductivityAnalysis
+                        productivityPatterns={productivityPatterns}
+                    />
+                </section>
 
-            <IssueAnalysis
-                issueComplexityData={issueComplexityData}
-                COLORS={[...COLORS.PRIMARY]}
-            />
+                <section id="section-collaboration">
+                    <TeamCollaboration
+                        collaborationData={collaborationData}
+                        averageTeamMembersData={averageTeamMembersData}
+                        COLORS={[...COLORS.PRIMARY]}
+                    />
+                </section>
 
-            <IssueTimeAnalysis
-                issues={issues}
-            />
-        </div>
+                <section id="section-issues">
+                    <IssueAnalysis
+                        issueComplexityData={issueComplexityData}
+                        COLORS={[...COLORS.PRIMARY]}
+                    />
+                    <div className="mt-10">
+                        <IssueTimeAnalysis issues={issues} />
+                    </div>
+                </section>
+
+            </div>
+        </>
     );
 };
 
