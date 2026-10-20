@@ -1,4 +1,7 @@
+'use client';
+
 import React from 'react';
+import { useTheme } from 'next-themes';
 import { CHART_CONFIG, CHART_TITLES, TOOLTIP_LABELS } from '@/config/dashboardConfig';
 import {HeatmapData} from "@/types/dashboard";
 
@@ -8,17 +11,22 @@ interface DetailedActivityProps {
     formatTime: (seconds: number) => string;
 }
 
-const DetailedActivity: React.FC<DetailedActivityProps> = ({ 
-    heatmapData, 
-    HEATMAP_COLORS, 
-    formatTime 
+const HEATMAP_COLORS_DARK = ['#161b22', '#0e4429', '#006d32', '#26a641', '#39d353'];
+
+const DetailedActivity: React.FC<DetailedActivityProps> = ({
+    heatmapData,
+    HEATMAP_COLORS,
+    formatTime
 }) => {
+    const { resolvedTheme } = useTheme();
+    const colors = resolvedTheme === 'dark' ? HEATMAP_COLORS_DARK : HEATMAP_COLORS;
+
     const getColorIndex = (value: number) => {
         if (value === 0) return 0;
-        if (value < 3600) return 1; // < 1 hour
-        if (value < 7200) return 2; // < 2 hours
-        if (value < 14400) return 3; // < 4 hours
-        return 4; // >= 4 hours
+        if (value < 3600) return 1;
+        if (value < 7200) return 2;
+        if (value < 14400) return 3;
+        return 4;
     };
 
     return (
@@ -75,7 +83,7 @@ const DetailedActivity: React.FC<DetailedActivityProps> = ({
                                                     key={dayIndex}
                                                     className="w-full h-6 rounded-sm border border-gray-100 dark:border-gray-700"
                                                     style={{
-                                                        backgroundColor: HEATMAP_COLORS[getColorIndex(day.value)]
+                                                        backgroundColor: colors[getColorIndex(day.value)]
                                                     }}
                                                     title={`${day.day}, ${day.month} ${day.year}: ${formatTime(day.value)}`}
                                                 />
@@ -88,7 +96,7 @@ const DetailedActivity: React.FC<DetailedActivityProps> = ({
                             {/* GitHub-style legend */}
                             <div className="mt-4 flex items-center justify-end space-x-1">
                                 <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">Weniger</span>
-                                {HEATMAP_COLORS.map((color, index) => (
+                                {colors.map((color, index) => (
                                     <div
                                         key={index}
                                         className="w-4 h-4 rounded-sm border border-gray-100 dark:border-gray-700"
