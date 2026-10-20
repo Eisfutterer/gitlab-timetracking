@@ -9,7 +9,7 @@ export default function Loading() {
             {/* Stats row */}
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 mt-14">
                 {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="bg-card border border-border rounded-xl p-6 shadow-sm">
+                    <div key={i} className="rounded-xl bg-card ring-1 ring-foreground/10 p-6">
                         <Skeleton className="h-4 w-24 mb-3 bg-muted" />
                         <Skeleton className="h-8 w-16 bg-muted" />
                         <Skeleton className="h-3 w-20 mt-2 bg-muted" />
@@ -20,7 +20,7 @@ export default function Loading() {
             {/* Chart row */}
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 {Array.from({ length: 2 }).map((_, i) => (
-                    <div key={i} className="bg-card border border-border rounded-xl p-6 shadow-sm">
+                    <div key={i} className="rounded-xl bg-card ring-1 ring-foreground/10 p-6">
                         <Skeleton className="h-5 w-40 mb-4 bg-muted" />
                         <Skeleton className="h-64 w-full bg-muted" />
                     </div>
@@ -28,7 +28,7 @@ export default function Loading() {
             </div>
 
             {/* Wide chart */}
-            <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
+            <div className="rounded-xl bg-card ring-1 ring-foreground/10 p-6">
                 <Skeleton className="h-5 w-48 mb-4 bg-muted" />
                 <Skeleton className="h-80 w-full bg-muted" />
             </div>

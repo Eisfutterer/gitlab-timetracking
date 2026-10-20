@@ -1,4 +1,7 @@
+'use client';
+
 import React from 'react';
+import { useTheme } from 'next-themes';
 import {
     BarChart, Bar, CartesianGrid, XAxis, YAxis, Tooltip, Legend,
     ResponsiveContainer, Cell
@@ -10,40 +13,57 @@ interface ProductivityAnalysisProps {
     productivityPatterns: ProductivityPatterns;
 }
 
+function useChartTheme() {
+    const { resolvedTheme } = useTheme();
+    const dark = resolvedTheme === 'dark';
+    return {
+        grid: dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+        axis: dark ? '#71717a' : '#a1a1aa',
+        tooltip: {
+            contentStyle: {
+                backgroundColor: dark ? '#1c1c1e' : '#ffffff',
+                border:          `1px solid ${dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+                borderRadius:    '0.625rem',
+                color:           dark ? '#fafafa' : '#0a0a0a',
+                fontSize:        '0.8125rem',
+            },
+            labelStyle: { color: dark ? '#fafafa' : '#0a0a0a', fontWeight: 600 },
+            itemStyle:  { color: dark ? '#a1a1aa' : '#71717a' },
+        },
+    };
+}
+
 const ProductivityAnalysis: React.FC<ProductivityAnalysisProps> = ({ productivityPatterns }) => {
+    const ct = useChartTheme();
+
     return (
-        <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
-            <h2 className="text-2xl font-semibold tracking-tight text-foreground mb-6">Produktivitätsanalyse</h2>
+        <div className="rounded-xl bg-card ring-1 ring-foreground/10 p-6">
+            <h2 className="text-xl font-semibold tracking-tight text-foreground mb-6">Produktivitätsanalyse</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Hourly Pattern */}
                 <div>
                     <h4 className="text-sm font-medium text-muted-foreground mb-2">{CHART_TITLES.HOURLY_DISTRIBUTION}</h4>
                     <ResponsiveContainer width="100%" height={CHART_CONFIG.HEIGHTS.MEDIUM}>
                         <BarChart data={productivityPatterns.hourlyData}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis 
-                                dataKey="hour" 
-                                label={{ value: 'Uhrzeit', position: 'bottom' }}
+                            <CartesianGrid strokeDasharray="3 3" stroke={ct.grid} />
+                            <XAxis
+                                dataKey="hour"
+                                tick={{ fill: ct.axis, fontSize: 12 }}
+                                label={{ value: 'Uhrzeit', position: 'bottom', fill: ct.axis }}
                             />
-                            <YAxis 
-                                label={{ 
-                                    value: TOOLTIP_LABELS.HOURS, 
-                                    angle: -90, 
-                                    position: 'insideLeft' 
-                                }}
+                            <YAxis
+                                tick={{ fill: ct.axis, fontSize: 12 }}
+                                label={{ value: TOOLTIP_LABELS.HOURS, angle: -90, position: 'insideLeft', fill: ct.axis }}
                             />
-                            <Tooltip 
+                            <Tooltip
                                 formatter={(value: number) => [`${value.toFixed(CHART_CONFIG.DECIMAL_PLACES)}h`, TOOLTIP_LABELS.HOURS]}
+                                {...ct.tooltip}
                             />
-                            <Bar 
-                                dataKey="value" 
-                                fill="#8884d8"
-                                name={CHART_LABELS.WORK_TIME}
-                            >
+                            <Bar dataKey="value" name={CHART_LABELS.WORK_TIME} radius={[3, 3, 0, 0]}>
                                 {productivityPatterns.hourlyData.map((entry, index) => (
-                                    <Cell 
+                                    <Cell
                                         key={`cell-${index}`}
-                                        fill={entry.hour === productivityPatterns.peakHour.hour ? '#4CAF50' : '#8884d8'}
+                                        fill={entry.hour === productivityPatterns.peakHour.hour ? '#4ade80' : '#8884d8'}
                                     />
                                 ))}
                             </Bar>
@@ -56,30 +76,25 @@ const ProductivityAnalysis: React.FC<ProductivityAnalysisProps> = ({ productivit
                     <h4 className="text-sm font-medium text-muted-foreground mb-2">{CHART_TITLES.WEEKLY_DISTRIBUTION}</h4>
                     <ResponsiveContainer width="100%" height={CHART_CONFIG.HEIGHTS.MEDIUM}>
                         <BarChart data={productivityPatterns.weeklyData}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis 
-                                dataKey="day" 
-                                label={{ value: 'Wochentag', position: 'bottom' }}
+                            <CartesianGrid strokeDasharray="3 3" stroke={ct.grid} />
+                            <XAxis
+                                dataKey="day"
+                                tick={{ fill: ct.axis, fontSize: 12 }}
+                                label={{ value: 'Wochentag', position: 'bottom', fill: ct.axis }}
                             />
-                            <YAxis 
-                                label={{ 
-                                    value: TOOLTIP_LABELS.HOURS, 
-                                    angle: -90, 
-                                    position: 'insideLeft' 
-                                }}
+                            <YAxis
+                                tick={{ fill: ct.axis, fontSize: 12 }}
+                                label={{ value: TOOLTIP_LABELS.HOURS, angle: -90, position: 'insideLeft', fill: ct.axis }}
                             />
-                            <Tooltip 
+                            <Tooltip
                                 formatter={(value: number) => [`${value.toFixed(CHART_CONFIG.DECIMAL_PLACES)}h`, TOOLTIP_LABELS.HOURS]}
+                                {...ct.tooltip}
                             />
-                            <Bar 
-                                dataKey="value" 
-                                fill="#82ca9d"
-                                name={CHART_LABELS.WORK_TIME}
-                            >
+                            <Bar dataKey="value" name={CHART_LABELS.WORK_TIME} radius={[3, 3, 0, 0]}>
                                 {productivityPatterns.weeklyData.map((entry, index) => (
-                                    <Cell 
+                                    <Cell
                                         key={`cell-${index}`}
-                                        fill={entry.day === productivityPatterns.peakDay.day ? '#4CAF50' : '#82ca9d'}
+                                        fill={entry.day === productivityPatterns.peakDay.day ? '#4ade80' : '#82ca9d'}
                                     />
                                 ))}
                             </Bar>
@@ -91,4 +106,4 @@ const ProductivityAnalysis: React.FC<ProductivityAnalysisProps> = ({ productivit
     );
 };
 
-export default ProductivityAnalysis; 
+export default ProductivityAnalysis;

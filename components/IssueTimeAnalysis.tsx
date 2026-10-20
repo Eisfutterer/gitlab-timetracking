@@ -1,4 +1,7 @@
+'use client';
+
 import React from 'react';
+import { useTheme } from 'next-themes';
 import {
     BarChart, Bar, CartesianGrid, XAxis, YAxis, Tooltip, Legend,
     ResponsiveContainer, Cell
@@ -19,6 +22,24 @@ interface IssueTimeAnalysisProps {
 }
 
 const IssueTimeAnalysis: React.FC<IssueTimeAnalysisProps> = ({ issues }) => {
+    const { resolvedTheme } = useTheme();
+    const dark = resolvedTheme === 'dark';
+    const ct = {
+        grid: dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+        axis: dark ? '#71717a' : '#a1a1aa',
+        tooltip: {
+            contentStyle: {
+                backgroundColor: dark ? '#1c1c1e' : '#ffffff',
+                border:          `1px solid ${dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+                borderRadius:    '0.625rem',
+                color:           dark ? '#fafafa' : '#0a0a0a',
+                fontSize:        '0.8125rem',
+            },
+            labelStyle: { color: dark ? '#fafafa' : '#0a0a0a', fontWeight: 600 },
+            itemStyle:  { color: dark ? '#a1a1aa' : '#71717a' },
+        },
+    };
+
     // Create issue map for efficient lookup
     const issueMap = new Map<string, Issue>();
     issues.forEach(issue => {
@@ -110,23 +131,24 @@ const IssueTimeAnalysis: React.FC<IssueTimeAnalysisProps> = ({ issues }) => {
     });
 
     return (
-        <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
-            <h2 className="text-2xl font-semibold tracking-tight text-foreground mb-6">Issue Zeitanalyse</h2>
+        <div className="rounded-xl bg-card ring-1 ring-foreground/10 p-6">
+            <h2 className="text-xl font-semibold tracking-tight text-foreground mb-6">Issue Zeitanalyse</h2>
 
             {/* Category Comparison Chart */}
             <div className="mb-8">
                 <h4 className="text-sm font-medium text-muted-foreground mb-2">{CHART_TITLES.TIME_COMPARISON}</h4>
                 <ResponsiveContainer width="100%" height={CHART_CONFIG.HEIGHTS.MEDIUM}>
                     <BarChart data={categoryComparison}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="category" />
-                        <YAxis />
-                        <Tooltip 
+                        <CartesianGrid strokeDasharray="3 3" stroke={ct.grid} />
+                        <XAxis dataKey="category" tick={{ fill: ct.axis, fontSize: 12 }} />
+                        <YAxis tick={{ fill: ct.axis, fontSize: 12 }} />
+                        <Tooltip
                             formatter={(value: number) => [`${value.toFixed(CHART_CONFIG.DECIMAL_PLACES)}h`, TOOLTIP_LABELS.HOURS]}
+                            {...ct.tooltip}
                         />
-                        <Legend />
-                        <Bar dataKey="estimated" fill="#8884d8" name={CHART_LABELS.ESTIMATED_TIME} />
-                        <Bar dataKey="actual" fill="#82ca9d" name={CHART_LABELS.ACTUAL_TIME} />
+                        <Legend wrapperStyle={{ color: ct.axis, fontSize: 12 }} />
+                        <Bar dataKey="estimated" fill="#8884d8" name={CHART_LABELS.ESTIMATED_TIME} radius={[3, 3, 0, 0]} />
+                        <Bar dataKey="actual" fill="#82ca9d" name={CHART_LABELS.ACTUAL_TIME} radius={[3, 3, 0, 0]} />
                     </BarChart>
                 </ResponsiveContainer>
             </div>
@@ -136,13 +158,14 @@ const IssueTimeAnalysis: React.FC<IssueTimeAnalysisProps> = ({ issues }) => {
                 <h4 className="text-sm font-medium text-muted-foreground mb-2">{CHART_LABELS.AVERAGE_DEVIATION}</h4>
                 <ResponsiveContainer width="100%" height={CHART_CONFIG.HEIGHTS.SMALL}>
                     <BarChart data={averageDeviationPerCategory}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="category" />
-                        <YAxis />
-                        <Tooltip 
+                        <CartesianGrid strokeDasharray="3 3" stroke={ct.grid} />
+                        <XAxis dataKey="category" tick={{ fill: ct.axis, fontSize: 12 }} />
+                        <YAxis tick={{ fill: ct.axis, fontSize: 12 }} />
+                        <Tooltip
                             formatter={(value: number) => [`${value.toFixed(CHART_CONFIG.DECIMAL_PLACES)}%`, TOOLTIP_LABELS.DEVIATION]}
+                            {...ct.tooltip}
                         />
-                        <Bar dataKey="averageDeviation" fill="#ffc658" name="Durchschnittliche Abweichung (%)" />
+                        <Bar dataKey="averageDeviation" fill="#ffc658" name="Ø Abweichung (%)" radius={[3, 3, 0, 0]} />
                     </BarChart>
                 </ResponsiveContainer>
             </div>
@@ -176,7 +199,7 @@ const IssueTimeAnalysis: React.FC<IssueTimeAnalysisProps> = ({ issues }) => {
                         </thead>
                         <tbody className="bg-card divide-y divide-border">
                             {sortedIssues.map((issue, index) => (
-                                <tr key={index} className={`${index % 2 === 0 ? 'bg-card' : 'bg-muted/50'} ${issue.totalTimeSpent === 0 ? 'line-through text-gray-400' : ''}`}>
+                                <tr key={index} className={`${index % 2 === 0 ? 'bg-card' : 'bg-muted/50'} ${issue.totalTimeSpent === 0 ? 'line-through text-muted-foreground' : ''}`}>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                                         {index + 1}
                                     </td>
@@ -185,7 +208,7 @@ const IssueTimeAnalysis: React.FC<IssueTimeAnalysisProps> = ({ issues }) => {
                                             href={`${GITLAB_CONFIG.ISSUE_BASE_URL}/${issue.iid}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-200"
+                                            className="truncate text-sm font-medium text-primary hover:underline"
                                         >
                                             {issue.title}
                                         </a>
@@ -201,7 +224,7 @@ const IssueTimeAnalysis: React.FC<IssueTimeAnalysisProps> = ({ issues }) => {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                            issue.timeEstimate === 0 ? 'bg-gray-100 text-gray-800' :
+                                            issue.timeEstimate === 0 ? 'bg-muted text-muted-foreground' :
                                             Math.abs(issue.difference) <= DEVIATION_THRESHOLDS.EXCELLENT ? 'bg-green-100 text-green-800' :
                                             Math.abs(issue.difference) <= DEVIATION_THRESHOLDS.GOOD ? 'bg-yellow-100 text-yellow-800' :
                                             'bg-red-100 text-red-800'

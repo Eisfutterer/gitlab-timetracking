@@ -124,9 +124,9 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
     if (presentationMode) {
         const currentId = SECTIONS[presentationIndex]?.id;
         return (
-            <div className="relative flex min-h-screen flex-col bg-white dark:bg-gray-950">
+            <div className="relative flex min-h-screen flex-col bg-background">
                 <div className="flex-1 overflow-auto px-8 py-10">
-                    <h1 className="mb-6 text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    <h1 className="mb-6 text-2xl font-bold text-foreground">
                         {SECTIONS[presentationIndex]?.label}
                     </h1>
                     {currentId && sectionContent[currentId]}

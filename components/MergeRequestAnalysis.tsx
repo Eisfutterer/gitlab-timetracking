@@ -58,8 +58,8 @@ export default function MergeRequestAnalysis({ mergeRequests }: Props) {
             </div>
 
             {/* Review coverage per person */}
-            <div className="bg-card border border-border rounded-xl p-4 shadow-sm">
-                <h3 className="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Review-Beteiligung</h3>
+            <div className="rounded-xl bg-card ring-1 ring-foreground/10 p-4">
+                <h3 className="mb-3 text-sm font-semibold text-foreground">Review-Beteiligung</h3>
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                         <thead>
@@ -72,12 +72,12 @@ export default function MergeRequestAnalysis({ mergeRequests }: Props) {
                         </thead>
                         <tbody>
                             {coverage.map(row => (
-                                <tr key={row.name} className="border-b border-gray-100 last:border-0 dark:border-gray-800">
+                                <tr key={row.name} className="border-b border-border last:border-0">
                                     <td className="py-2 text-foreground">{row.name}</td>
                                     <td className="py-2 text-right text-muted-foreground">{row.authored}</td>
                                     <td className="py-2 text-right text-muted-foreground">{row.reviewed}</td>
                                     <td className="py-2 text-right">
-                                        <span className={row.authored > 0 && row.reviewed / row.authored >= 1 ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}>
+                                        <span className={row.authored > 0 && row.reviewed / row.authored >= 1 ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}>
                                             {row.authored > 0 ? `${((row.reviewed / row.authored) * 100).toFixed(0)}%` : '—'}
                                         </span>
                                     </td>
@@ -89,7 +89,7 @@ export default function MergeRequestAnalysis({ mergeRequests }: Props) {
             </div>
 
             {/* MR list */}
-            <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+            <div className="rounded-xl bg-card ring-1 ring-foreground/10 overflow-hidden">
                 <div className="divide-y divide-border">
                     {mergeRequests.slice(0, 20).map(mr => (
                         <div key={mr.iid} className="flex items-start gap-3 px-4 py-3">
@@ -101,7 +101,7 @@ export default function MergeRequestAnalysis({ mergeRequests }: Props) {
                                     href={mr.webUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="truncate text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
+                                    className="truncate text-sm font-medium text-primary hover:underline"
                                 >
                                     {mr.title}
                                 </a>
@@ -113,7 +113,7 @@ export default function MergeRequestAnalysis({ mergeRequests }: Props) {
                         </div>
                     ))}
                     {mergeRequests.length === 0 && (
-                        <p className="px-4 py-6 text-center text-sm text-gray-400">Keine Merge Requests gefunden</p>
+                        <p className="px-4 py-6 text-center text-sm text-muted-foreground">Keine Merge Requests gefunden</p>
                     )}
                 </div>
             </div>

@@ -1,4 +1,7 @@
+'use client';
+
 import React from 'react';
+import { useTheme } from 'next-themes';
 import {
     BarChart, Bar, CartesianGrid, XAxis, YAxis, Tooltip, Legend,
     ResponsiveContainer, Cell
@@ -12,33 +15,53 @@ interface TeamCollaborationProps {
     COLORS: string[];
 }
 
-const TeamCollaboration: React.FC<TeamCollaborationProps> = ({ 
-    collaborationData, 
-    averageTeamMembersData, 
-    COLORS 
+function useChartTheme() {
+    const { resolvedTheme } = useTheme();
+    const dark = resolvedTheme === 'dark';
+    return {
+        grid: dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+        axis: dark ? '#71717a' : '#a1a1aa',
+        tooltip: {
+            contentStyle: {
+                backgroundColor: dark ? '#1c1c1e' : '#ffffff',
+                border:          `1px solid ${dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+                borderRadius:    '0.625rem',
+                color:           dark ? '#fafafa' : '#0a0a0a',
+                fontSize:        '0.8125rem',
+            },
+            labelStyle: { color: dark ? '#fafafa' : '#0a0a0a', fontWeight: 600 },
+            itemStyle:  { color: dark ? '#a1a1aa' : '#71717a' },
+        },
+    };
+}
+
+const TeamCollaboration: React.FC<TeamCollaborationProps> = ({
+    collaborationData,
+    averageTeamMembersData,
+    COLORS
 }) => {
+    const ct = useChartTheme();
+
     return (
-        <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
-            <h2 className="text-2xl font-semibold tracking-tight text-foreground mb-6">Team Zusammenarbeit</h2>
+        <div className="rounded-xl bg-card ring-1 ring-foreground/10 p-6">
+            <h2 className="text-xl font-semibold tracking-tight text-foreground mb-6">Team Zusammenarbeit</h2>
             <div className="grid grid-cols-1 gap-6">
-                {/* Team Collaboration Network */}
+                {/* Top Collaborations */}
                 <div>
                     <h4 className="text-sm font-medium text-muted-foreground mb-2">{CHART_TITLES.TOP_COLLABORATIONS}</h4>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {collaborationData.slice(0, DISPLAY_CONFIG.TOP_COLLABORATIONS).map((collab, index) => (
-                            <div key={index} className="bg-muted/50 p-4 rounded-lg">
+                            <div key={index} className="rounded-lg bg-muted/50 p-4 ring-1 ring-foreground/5">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <p className="text-lg font-semibold text-foreground">
+                                        <p className="text-sm font-semibold text-foreground">
                                             {collab.source} + {collab.target}
                                         </p>
-                                        <p className="text-sm text-muted-foreground mt-1">
+                                        <p className="text-xs text-muted-foreground mt-1">
                                             {collab.value} gemeinsame Issues
                                         </p>
                                     </div>
-                                    <div className="text-2xl font-bold text-blue-600">
-                                        #{index + 1}
-                                    </div>
+                                    <span className="text-xl font-bold text-muted-foreground">#{index + 1}</span>
                                 </div>
                             </div>
                         ))}
@@ -50,38 +73,35 @@ const TeamCollaboration: React.FC<TeamCollaborationProps> = ({
                     <h4 className="text-sm font-medium text-muted-foreground mb-2">{CHART_TITLES.AVERAGE_TEAM_SIZE}</h4>
                     <ResponsiveContainer width="100%" height={CHART_CONFIG.HEIGHTS.MEDIUM}>
                         <BarChart data={averageTeamMembersData}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis 
-                                dataKey="category" 
+                            <CartesianGrid strokeDasharray="3 3" stroke={ct.grid} />
+                            <XAxis
+                                dataKey="category"
+                                tick={{ fill: ct.axis, fontSize: 12 }}
                                 angle={CHART_CONFIG.ANGLES.LABEL_ROTATION}
                                 textAnchor="end"
                                 height={70}
                                 interval={0}
                             />
-                            <YAxis 
-                                label={{ 
-                                    value: 'Durchschnittliche Anzahl Teammitglieder', 
-                                    angle: -90, 
+                            <YAxis
+                                tick={{ fill: ct.axis, fontSize: 12 }}
+                                label={{
+                                    value: 'Ø Teammitglieder',
+                                    angle: -90,
                                     position: 'insideLeft',
-                                    style: { textAnchor: 'middle' }
+                                    fill: ct.axis,
+                                    style: { textAnchor: 'middle' },
                                 }}
                                 domain={[0, 'dataMax + 1']}
                             />
-                            <Tooltip 
+                            <Tooltip
                                 formatter={(value: number) => [`${value.toFixed(CHART_CONFIG.DECIMAL_PLACES)}`, TOOLTIP_LABELS.TEAM_MEMBERS]}
                                 labelFormatter={(label) => `${label}`}
+                                {...ct.tooltip}
                             />
-                            <Legend />
-                            <Bar 
-                                dataKey="averageMembers" 
-                                fill="#8884d8" 
-                                name={CHART_LABELS.TEAM_SIZE}
-                            >
+                            <Legend wrapperStyle={{ color: ct.axis, fontSize: 12 }} />
+                            <Bar dataKey="averageMembers" name={CHART_LABELS.TEAM_SIZE} radius={[3, 3, 0, 0]}>
                                 {averageTeamMembersData.map((entry, index) => (
-                                    <Cell 
-                                        key={`cell-${index}`} 
-                                        fill={COLORS[index % COLORS.length]} 
-                                    />
+                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                 ))}
                             </Bar>
                         </BarChart>
@@ -92,4 +112,4 @@ const TeamCollaboration: React.FC<TeamCollaborationProps> = ({
     );
 };
 
-export default TeamCollaboration; 
+export default TeamCollaboration;
