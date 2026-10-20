@@ -2,6 +2,7 @@ import { format, startOfWeek, getDay, getWeek, addMonths, subMonths, addWeeks } 
 import { de } from 'date-fns/locale';
 import {
     CATEGORY_MAP,
+    CATEGORY_PATTERNS,
     TIME_CONFIG,
     GERMAN_DAYS,
 } from '@/config/dashboardConfig';
@@ -33,14 +34,25 @@ export function processChartData(
     issues: Issue[],
     timelogs: Timelog[],
 ): ChartData {
+    function matchCategory(labelTitle: string): string | null {
+        for (const { category, pattern } of CATEGORY_PATTERNS) {
+            if (pattern.test(labelTitle)) return category;
+        }
+        // Fallback: exact match
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if ((CATEGORY_MAP as any)[labelTitle] !== undefined) return labelTitle;
+        return null;
+    }
+
     // === 1. Piechart (Kategorie-Zeiten gesamt) ===
     const categoryMap: Record<string, number> = { ...CATEGORY_MAP };
 
     timelogs.forEach(log => {
         if (log.issue && log.issue.labels && log.issue.labels.nodes) {
             log.issue.labels.nodes.forEach(label => {
-                if (categoryMap[label.title] !== undefined) {
-                    categoryMap[label.title] += log.timeSpent;
+                const cat = matchCategory(label.title);
+                if (cat !== null) {
+                    categoryMap[cat] += log.timeSpent;
                 }
             });
         }
@@ -189,16 +201,17 @@ export function processChartData(
         if (log.issue && log.issue.labels && log.issue.labels.nodes) {
             const issueId = log.issue.iid;
             log.issue.labels.nodes.forEach(label => {
-                if (categoryMap[label.title] !== undefined) {
-                    if (!categoryTeamMembers[label.title]) {
-                        categoryTeamMembers[label.title] = new Set<string>();
-                        categoryIssueCount[label.title] = new Set<string>();
+                const cat = matchCategory(label.title);
+                if (cat !== null) {
+                    if (!categoryTeamMembers[cat]) {
+                        categoryTeamMembers[cat] = new Set<string>();
+                        categoryIssueCount[cat] = new Set<string>();
                     }
                     if (!issueTeamMembers[issueId]) {
                         issueTeamMembers[issueId] = new Set<string>();
                     }
-                    categoryTeamMembers[label.title].add(log.user.name);
-                    categoryIssueCount[label.title].add(issueId);
+                    categoryTeamMembers[cat].add(log.user.name);
+                    categoryIssueCount[cat].add(issueId);
                     issueTeamMembers[issueId].add(log.user.name);
                 }
             });
@@ -229,9 +242,10 @@ export function processChartData(
             if (!issueTimeMap[issueId]) issueTimeMap[issueId] = 0;
             issueTimeMap[issueId] += log.timeSpent;
             log.issue.labels.nodes.forEach(label => {
-                if (categoryMap[label.title] !== undefined) {
-                    if (!categoryIssueTime[label.title]) {
-                        categoryIssueTime[label.title] = { total: 0, count: 0 };
+                const cat = matchCategory(label.title);
+                if (cat !== null) {
+                    if (!categoryIssueTime[cat]) {
+                        categoryIssueTime[cat] = { total: 0, count: 0 };
                     }
                 }
             });

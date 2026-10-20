@@ -35,6 +35,16 @@ export const CATEGORY_MAP = {
 
 export const CATEGORY_LIST = Object.values(CATEGORIES);
 
+// Regex patterns for label matching (case-insensitive, order matters — first match wins)
+export const CATEGORY_PATTERNS: Array<{ category: string; pattern: RegExp }> = [
+    { category: CATEGORIES.FRONTEND,                pattern: /frontend|ui|css|design/i },
+    { category: CATEGORIES.BACKEND,                 pattern: /backend|api|server|database|db/i },
+    { category: CATEGORIES.TESTING,                 pattern: /test(ing)?|qa|quality/i },
+    { category: CATEGORIES.PROJEKTMANAGEMENT,       pattern: /projekt(management)?|pm|planning|sprint/i },
+    { category: CATEGORIES.DOKUMENTATION,           pattern: /doku(mentation)?|docs?|readme/i },
+    { category: CATEGORIES.REQUIREMENTS_ENGINEERING, pattern: /requirements?|re|anforderung|use.?case/i },
+];
+
 // Color Schemes
 export const COLORS = {
     PRIMARY: ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'],
