@@ -12,7 +12,7 @@ async function graphql(query: string): Promise<any> {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({ query }),
-        cache: 'no-store',
+        next: { revalidate: 180 },
     });
     const json = await res.json();
     return json.data;
