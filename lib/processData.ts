@@ -28,7 +28,37 @@ export interface ChartData {
     issueComplexityData: IssueComplexityData[];
     collaborationData: CollaborationData[];
     productivityPatterns: ProductivityPatterns;
+    leaderboard: LeaderboardEntry[];
 }
+
+export interface LeaderboardEntry {
+    name: string;
+    hours: number;
+    issueCount: number;
+    rank: number;
+}
+
+export function processLeaderboard(timelogs: Timelog[]): LeaderboardEntry[] {
+    const userMap: Record<string, { seconds: number; issues: Set<string> }> = {};
+
+    timelogs.forEach(log => {
+        const name = log.user.name;
+        if (!userMap[name]) userMap[name] = { seconds: 0, issues: new Set() };
+        userMap[name].seconds += log.timeSpent;
+        if (log.issue?.iid) userMap[name].issues.add(log.issue.iid);
+    });
+
+    return Object.entries(userMap)
+        .map(([name, data]) => ({
+            name,
+            hours: data.seconds / 3600,
+            issueCount: data.issues.size,
+            rank: 0,
+        }))
+        .sort((a, b) => b.hours - a.hours)
+        .map((entry, i) => ({ ...entry, rank: i + 1 }));
+}
+
 
 export function processChartData(
     issues: Issue[],
@@ -348,5 +378,6 @@ export function processChartData(
         issueComplexityData,
         collaborationData,
         productivityPatterns: { hourlyData, weeklyData, peakHour, peakDay },
+        leaderboard: processLeaderboard(timelogs),
     };
 }

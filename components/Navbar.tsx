@@ -15,6 +15,7 @@ const SECTIONS = [
     { id: 'collaboration', label: 'Kollaboration' },
     { id: 'issues', label: 'Issues' },
     { id: 'mergerequests', label: 'Merge Requests' },
+    { id: 'leaderboard', label: 'Leaderboard' },
 ];
 
 interface NavbarProps {
