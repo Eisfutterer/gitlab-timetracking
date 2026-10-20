@@ -17,6 +17,7 @@ import DetailedActivity from './DetailedActivity';
 import EpicGraph from './EpicGraph';
 import MergeRequestAnalysis from './MergeRequestAnalysis';
 import Leaderboard from './Leaderboard';
+import GamificationCard from './GamificationCard';
 
 interface DashboardShellProps extends ChartData {
     issues: Issue[];
@@ -30,7 +31,7 @@ const formatTime = (seconds: number): string => {
     return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}h`;
 };
 
-const SECTION_IDS = ['epics', 'overview', 'activity', 'timeseries', 'team', 'productivity', 'collaboration', 'issues', 'mergerequests', 'leaderboard'];
+const SECTION_IDS = ['epics', 'overview', 'activity', 'timeseries', 'team', 'productivity', 'collaboration', 'issues', 'mergerequests', 'leaderboard', 'gamification'];
 
 const DashboardShell: React.FC<DashboardShellProps> = ({
     pieData,
@@ -43,6 +44,7 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
     collaborationData,
     productivityPatterns,
     leaderboard,
+    gamification,
     issues,
     epics,
     mergeRequests,
@@ -128,6 +130,10 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
 
                 <section id="section-leaderboard">
                     <Leaderboard leaderboard={leaderboard} />
+                </section>
+
+                <section id="section-gamification">
+                    <GamificationCard members={gamification} />
                 </section>
 
             </div>

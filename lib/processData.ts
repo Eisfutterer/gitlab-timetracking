@@ -16,6 +16,7 @@ import {
     IssueComplexityData,
     HeatmapData,
 } from '@/types/dashboard';
+import { calculateGamification, MemberGamification } from '@/lib/gamification';
 
 export interface ChartData {
     pieData: { name: string; value: number }[];
@@ -29,6 +30,7 @@ export interface ChartData {
     collaborationData: CollaborationData[];
     productivityPatterns: ProductivityPatterns;
     leaderboard: LeaderboardEntry[];
+    gamification: MemberGamification[];
 }
 
 export interface LeaderboardEntry {
@@ -379,5 +381,6 @@ export function processChartData(
         collaborationData,
         productivityPatterns: { hourlyData, weeklyData, peakHour, peakDay },
         leaderboard: processLeaderboard(timelogs),
+        gamification: calculateGamification(timelogs),
     };
 }

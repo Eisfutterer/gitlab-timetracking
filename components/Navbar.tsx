@@ -16,6 +16,7 @@ const SECTIONS = [
     { id: 'issues', label: 'Issues' },
     { id: 'mergerequests', label: 'Merge Requests' },
     { id: 'leaderboard', label: 'Leaderboard' },
+    { id: 'gamification', label: 'Gamification' },
 ];
 
 interface NavbarProps {
