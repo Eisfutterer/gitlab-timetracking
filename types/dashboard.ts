@@ -90,4 +90,16 @@ export interface HeatmapData {
     month: string;
     week: number;
     year: string;
-} 
+}
+
+export interface MergeRequest {
+    iid: string;
+    title: string;
+    state: 'opened' | 'closed' | 'merged' | 'locked';
+    createdAt: string;
+    mergedAt: string | null;
+    author: { name: string; username: string } | null;
+    reviewers: { nodes: Array<{ name: string; username: string }> };
+    labels: { nodes: Array<{ title: string }> };
+    webUrl: string;
+}

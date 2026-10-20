@@ -1,5 +1,5 @@
 import { GITLAB_CONFIG, TEAM_MEMBERS } from '@/config/dashboardConfig';
-import { Issue, Timelog, Epic } from '@/types/dashboard';
+import { Issue, Timelog, Epic, MergeRequest } from '@/types/dashboard';
 
 const TOKEN = process.env.GITLAB_TOKEN!;
 
@@ -157,3 +157,33 @@ export async function fetchEpics(): Promise<Epic[]> {
     return roots;
 }
 
+export async function fetchMergeRequests(): Promise<MergeRequest[]> {
+    let allMRs: MergeRequest[] = [];
+    let hasNextPage = true;
+    let endCursor: string | null = null;
+
+    while (hasNextPage) {
+        const data = await graphql(`
+            {
+                group(fullPath: "${GITLAB_CONFIG.GROUP_PATH}") {
+                    mergeRequests(first: 100, after: ${endCursor ? `"${endCursor}"` : 'null'}) {
+                        nodes {
+                            iid title state createdAt mergedAt webUrl
+                            author { name username }
+                            reviewers { nodes { name username } }
+                            labels { nodes { title } }
+                        }
+                        pageInfo { hasNextPage endCursor }
+                    }
+                }
+            }
+        `);
+
+        const mrData = data.group.mergeRequests;
+        allMRs = [...allMRs, ...mrData.nodes];
+        hasNextPage = mrData.pageInfo.hasNextPage;
+        endCursor = mrData.pageInfo.endCursor;
+    }
+
+    return allMRs;
+}

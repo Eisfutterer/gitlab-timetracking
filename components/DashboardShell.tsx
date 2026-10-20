@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { COLORS, TIME_CONFIG } from '../config/dashboardConfig';
 import { ChartData } from '../lib/processData';
-import { Issue, Epic } from '../types/dashboard';
+import { Issue, Epic, MergeRequest } from '../types/dashboard';
 
 import Navbar from './Navbar';
 import ProjectOverview from './ProjectOverview';
@@ -15,10 +15,12 @@ import IssueAnalysis from './IssueAnalysis';
 import IssueTimeAnalysis from './IssueTimeAnalysis';
 import DetailedActivity from './DetailedActivity';
 import EpicGraph from './EpicGraph';
+import MergeRequestAnalysis from './MergeRequestAnalysis';
 
 interface DashboardShellProps extends ChartData {
     issues: Issue[];
     epics: Epic[];
+    mergeRequests: MergeRequest[];
 }
 
 const formatTime = (seconds: number): string => {
@@ -27,7 +29,7 @@ const formatTime = (seconds: number): string => {
     return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}h`;
 };
 
-const SECTION_IDS = ['epics', 'overview', 'activity', 'timeseries', 'team', 'productivity', 'collaboration', 'issues'];
+const SECTION_IDS = ['epics', 'overview', 'activity', 'timeseries', 'team', 'productivity', 'collaboration', 'issues', 'mergerequests'];
 
 const DashboardShell: React.FC<DashboardShellProps> = ({
     pieData,
@@ -41,6 +43,7 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
     productivityPatterns,
     issues,
     epics,
+    mergeRequests,
 }) => {
     const [activeSection, setActiveSection] = useState<string>('epics');
 
@@ -115,6 +118,10 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
                     <div className="mt-10">
                         <IssueTimeAnalysis issues={issues} />
                     </div>
+                </section>
+
+                <section id="section-mergerequests">
+                    <MergeRequestAnalysis mergeRequests={mergeRequests} />
                 </section>
 
             </div>
