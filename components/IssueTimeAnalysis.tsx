@@ -110,12 +110,12 @@ const IssueTimeAnalysis: React.FC<IssueTimeAnalysisProps> = ({ issues }) => {
     });
 
     return (
-        <div className="bg-white p-4 rounded-lg shadow">
-            <h2 className="text-xl font-bold mb-6 text-gray-800">Issue Zeitanalyse</h2>
-            
+        <div className="bg-white dark:bg-gray-900 p-4 rounded-lg shadow">
+            <h2 className="text-xl font-bold mb-6 text-gray-800 dark:text-gray-200">Issue Zeitanalyse</h2>
+
             {/* Category Comparison Chart */}
             <div className="mb-8">
-                <h4 className="text-sm font-medium text-gray-700 mb-2">{CHART_TITLES.TIME_COMPARISON}</h4>
+                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{CHART_TITLES.TIME_COMPARISON}</h4>
                 <ResponsiveContainer width="100%" height={CHART_CONFIG.HEIGHTS.MEDIUM}>
                     <BarChart data={categoryComparison}>
                         <CartesianGrid strokeDasharray="3 3" />
@@ -133,7 +133,7 @@ const IssueTimeAnalysis: React.FC<IssueTimeAnalysisProps> = ({ issues }) => {
 
             {/* Average Deviation per Category */}
             <div className="mb-8">
-                <h4 className="text-sm font-medium text-gray-700 mb-2">{CHART_LABELS.AVERAGE_DEVIATION}</h4>
+                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{CHART_LABELS.AVERAGE_DEVIATION}</h4>
                 <ResponsiveContainer width="100%" height={CHART_CONFIG.HEIGHTS.SMALL}>
                     <BarChart data={averageDeviationPerCategory}>
                         <CartesianGrid strokeDasharray="3 3" />
@@ -149,54 +149,54 @@ const IssueTimeAnalysis: React.FC<IssueTimeAnalysisProps> = ({ issues }) => {
 
             {/* Issues Table */}
             <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Issue Details</h4>
+                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Issue Details</h4>
                 <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
+                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead className="bg-gray-50 dark:bg-gray-800">
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     #
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     Issue
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     Kategorie
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     Geschätzt (h)
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     Tatsächlich (h)
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     Abweichung
                                 </th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
                             {sortedIssues.map((issue, index) => (
-                                <tr key={index} className={`${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} ${issue.totalTimeSpent === 0 ? 'line-through text-gray-400' : ''}`}>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <tr key={index} className={`${index % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-50 dark:bg-gray-800'} ${issue.totalTimeSpent === 0 ? 'line-through text-gray-400' : ''}`}>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                                         {index + 1}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <a 
+                                        <a
                                             href={`${GITLAB_CONFIG.ISSUE_BASE_URL}/${issue.iid}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="text-blue-600 hover:text-blue-900"
+                                            className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-200"
                                         >
                                             {issue.title}
                                         </a>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                                         {issue.mainCategory}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                                         {issue.timeEstimate.toFixed(CHART_CONFIG.DECIMAL_PLACES)}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                                         {issue.totalTimeSpent.toFixed(CHART_CONFIG.DECIMAL_PLACES)}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">

@@ -9,8 +9,8 @@ interface ProjectOverviewProps {
 
 const ProjectOverview: React.FC<ProjectOverviewProps> = ({ projectMetrics, issues }) => {
     return (
-        <div className="bg-white p-4 rounded-lg shadow">
-            <h2 className="text-xl font-bold mb-6 text-gray-800">Projektübersicht</h2>
+        <div className="bg-white dark:bg-gray-900 p-4 rounded-lg shadow">
+            <h2 className="text-xl font-bold mb-6 text-gray-800 dark:text-gray-200">Projektübersicht</h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 {/* Team Velocity */}
                 <div className="bg-blue-50 p-4 rounded-lg">

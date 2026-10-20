@@ -13,12 +13,12 @@ interface IssueAnalysisProps {
 
 const IssueAnalysis: React.FC<IssueAnalysisProps> = ({ issueComplexityData, COLORS }) => {
     return (
-        <div className="bg-white p-4 rounded-lg shadow">
-            <h2 className="text-xl font-bold mb-6 text-gray-800">Issue Analyse</h2>
+        <div className="bg-white dark:bg-gray-900 p-4 rounded-lg shadow">
+            <h2 className="text-xl font-bold mb-6 text-gray-800 dark:text-gray-200">Issue Analyse</h2>
             <div className="grid grid-cols-1 gap-6">
                 {/* Issue Complexity */}
                 <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">{CHART_TITLES.ISSUE_COMPLEXITY}</h4>
+                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{CHART_TITLES.ISSUE_COMPLEXITY}</h4>
                     <ResponsiveContainer width="100%" height={CHART_CONFIG.HEIGHTS.MEDIUM}>
                         <BarChart data={issueComplexityData}>
                             <CartesianGrid strokeDasharray="3 3" />

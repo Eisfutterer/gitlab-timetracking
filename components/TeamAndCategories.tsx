@@ -14,12 +14,12 @@ interface TeamAndCategoriesProps {
 
 const TeamAndCategories: React.FC<TeamAndCategoriesProps> = ({pieData, barData, COLORS}) => {
     return (
-        <div className="bg-white p-4 rounded-lg shadow">
-            <h2 className="text-xl font-bold mb-6 text-gray-800">Team & Kategorien</h2>
+        <div className="bg-white dark:bg-gray-900 p-4 rounded-lg shadow">
+            <h2 className="text-xl font-bold mb-6 text-gray-800 dark:text-gray-200">Team & Kategorien</h2>
             <div className="grid grid-cols-1 gap-6">
                 {/* Category Distribution */}
                 <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">{CHART_TITLES.CATEGORY_DISTRIBUTION}</h4>
+                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{CHART_TITLES.CATEGORY_DISTRIBUTION}</h4>
                     <ResponsiveContainer width="100%" height={CHART_CONFIG.HEIGHTS.MEDIUM}>
                         <PieChart>
                             <Pie
@@ -43,7 +43,7 @@ const TeamAndCategories: React.FC<TeamAndCategoriesProps> = ({pieData, barData, 
 
                 {/* Team Activity */}
                 <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">{CHART_TITLES.TEAM_ACTIVITY}</h4>
+                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{CHART_TITLES.TEAM_ACTIVITY}</h4>
                     <ResponsiveContainer width="100%" height={CHART_CONFIG.HEIGHTS.MEDIUM}>
                         <BarChart data={barData}>
                             <CartesianGrid strokeDasharray="3 3"/>
