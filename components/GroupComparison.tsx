@@ -37,7 +37,7 @@ export default function GroupComparison() {
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Gruppen-Vergleich</h2>
+                <h2 className="text-2xl font-semibold tracking-tight text-foreground">Gruppen-Vergleich</h2>
                 <Button variant="outline" size="sm" onClick={fetchGroups} disabled={loading}>
                     {loading ? 'Lädt…' : 'Aktualisieren'}
                 </Button>
@@ -49,9 +49,9 @@ export default function GroupComparison() {
                 </div>
             )}
 
-            <div className="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900 overflow-hidden">
+            <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
                 {loading && !loaded ? (
-                    <div className="divide-y divide-gray-100 dark:divide-gray-800">
+                    <div className="divide-y divide-border">
                         {Array.from({ length: 5 }).map((_, i) => (
                             <div key={i} className="flex items-center gap-4 px-4 py-3">
                                 <Skeleton className="h-4 w-4 shrink-0" />
@@ -61,7 +61,7 @@ export default function GroupComparison() {
                         ))}
                     </div>
                 ) : (
-                    <div className="divide-y divide-gray-100 dark:divide-gray-800">
+                    <div className="divide-y divide-border">
                         {groups.map((g, i) => {
                             const isOurs = g.fullPath === 'dhbw-se/software-engineering-i-tinf25b6/g4-mergeconflict';
                             return (
@@ -73,10 +73,10 @@ export default function GroupComparison() {
                                         #{i + 1}
                                     </span>
                                     <div className="min-w-0 flex-1">
-                                        <p className={`text-sm font-medium truncate ${isOurs ? 'text-blue-700 dark:text-blue-300' : 'text-gray-900 dark:text-gray-100'}`}>
+                                        <p className={`text-sm font-medium truncate ${isOurs ? 'text-blue-700 dark:text-blue-300' : 'text-foreground'}`}>
                                             {g.name} {isOurs && '← unsere Gruppe'}
                                         </p>
-                                        <div className="mt-1 h-1.5 w-full rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
+                                        <div className="mt-1 h-1.5 w-full rounded-full bg-muted overflow-hidden">
                                             <div
                                                 className={`h-full rounded-full ${isOurs ? 'bg-blue-500' : 'bg-gray-400 dark:bg-gray-600'}`}
                                                 style={{ width: `${Math.min(100, (g.totalHours / maxHours) * 100)}%` }}
@@ -84,7 +84,7 @@ export default function GroupComparison() {
                                         </div>
                                     </div>
                                     <div className="shrink-0 text-right">
-                                        <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                        <p className="text-sm font-semibold text-foreground">
                                             {g.totalHours.toFixed(1)} h
                                         </p>
                                         {g.memberCount > 0 && (

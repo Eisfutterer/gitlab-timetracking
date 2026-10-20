@@ -49,7 +49,7 @@ export default function MergeRequestAnalysis({ mergeRequests }: Props) {
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Merge Requests</h2>
+                <h2 className="text-2xl font-semibold tracking-tight text-foreground">Merge Requests</h2>
                 <div className="flex gap-2">
                     <Badge variant="success">{merged} Merged</Badge>
                     <Badge variant="default">{open} Offen</Badge>
@@ -58,26 +58,26 @@ export default function MergeRequestAnalysis({ mergeRequests }: Props) {
             </div>
 
             {/* Review coverage per person */}
-            <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900">
+            <div className="bg-card border border-border rounded-xl p-4 shadow-sm">
                 <h3 className="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Review-Beteiligung</h3>
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                         <thead>
-                            <tr className="border-b border-gray-200 dark:border-gray-700">
-                                <th className="pb-2 text-left font-medium text-gray-500 dark:text-gray-400">Person</th>
-                                <th className="pb-2 text-right font-medium text-gray-500 dark:text-gray-400">Erstellt</th>
-                                <th className="pb-2 text-right font-medium text-gray-500 dark:text-gray-400">Reviewed</th>
-                                <th className="pb-2 text-right font-medium text-gray-500 dark:text-gray-400">Review-Quote</th>
+                            <tr className="border-b border-border">
+                                <th className="pb-2 text-left font-medium text-muted-foreground">Person</th>
+                                <th className="pb-2 text-right font-medium text-muted-foreground">Erstellt</th>
+                                <th className="pb-2 text-right font-medium text-muted-foreground">Reviewed</th>
+                                <th className="pb-2 text-right font-medium text-muted-foreground">Review-Quote</th>
                             </tr>
                         </thead>
                         <tbody>
                             {coverage.map(row => (
                                 <tr key={row.name} className="border-b border-gray-100 last:border-0 dark:border-gray-800">
-                                    <td className="py-2 text-gray-900 dark:text-gray-100">{row.name}</td>
-                                    <td className="py-2 text-right text-gray-600 dark:text-gray-400">{row.authored}</td>
-                                    <td className="py-2 text-right text-gray-600 dark:text-gray-400">{row.reviewed}</td>
+                                    <td className="py-2 text-foreground">{row.name}</td>
+                                    <td className="py-2 text-right text-muted-foreground">{row.authored}</td>
+                                    <td className="py-2 text-right text-muted-foreground">{row.reviewed}</td>
                                     <td className="py-2 text-right">
-                                        <span className={row.authored > 0 && row.reviewed / row.authored >= 1 ? 'text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400'}>
+                                        <span className={row.authored > 0 && row.reviewed / row.authored >= 1 ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}>
                                             {row.authored > 0 ? `${((row.reviewed / row.authored) * 100).toFixed(0)}%` : '—'}
                                         </span>
                                     </td>
@@ -89,8 +89,8 @@ export default function MergeRequestAnalysis({ mergeRequests }: Props) {
             </div>
 
             {/* MR list */}
-            <div className="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900 overflow-hidden">
-                <div className="divide-y divide-gray-100 dark:divide-gray-800">
+            <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+                <div className="divide-y divide-border">
                     {mergeRequests.slice(0, 20).map(mr => (
                         <div key={mr.iid} className="flex items-start gap-3 px-4 py-3">
                             <Badge variant={stateVariant(mr.state)} className="mt-0.5 shrink-0">
@@ -105,7 +105,7 @@ export default function MergeRequestAnalysis({ mergeRequests }: Props) {
                                 >
                                     {mr.title}
                                 </a>
-                                <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                                <p className="mt-0.5 text-xs text-muted-foreground">
                                     {mr.author?.name ?? 'Unbekannt'} · {new Date(mr.createdAt).toLocaleDateString('de-DE')}
                                     {mr.reviewers.nodes.length > 0 && ` · Reviewer: ${mr.reviewers.nodes.map(r => r.name).join(', ')}`}
                                 </p>

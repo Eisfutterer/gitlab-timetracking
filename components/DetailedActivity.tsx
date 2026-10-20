@@ -30,12 +30,12 @@ const DetailedActivity: React.FC<DetailedActivityProps> = ({
     };
 
     return (
-        <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow">
-            <h2 className="text-xl font-bold mb-6 text-gray-800 dark:text-gray-200">Detaillierte Aktivität</h2>
+        <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
+            <h2 className="text-2xl font-semibold tracking-tight text-foreground mb-6">Detaillierte Aktivität</h2>
             <div className="space-y-6">
                 {/* GitHub-style Activity Heatmap */}
                 <div>
-                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">{CHART_TITLES.DAILY_ACTIVITY}</h4>
+                    <h4 className="text-sm font-medium text-muted-foreground mb-4">{CHART_TITLES.DAILY_ACTIVITY}</h4>
                     <div className="w-full">
                         <div className="w-full">
                             {/* GitHub-style grid layout */}
@@ -51,7 +51,7 @@ const DetailedActivity: React.FC<DetailedActivityProps> = ({
                                         return (
                                             <div 
                                                 key={weekIndex} 
-                                                className={`text-xs text-gray-500 dark:text-gray-400 flex-1 text-center ${isFirstWeekOfMonth ? 'visible' : 'invisible'}`}
+                                                className={`text-xs text-muted-foreground flex-1 text-center ${isFirstWeekOfMonth ? 'visible' : 'invisible'}`}
                                             >
                                                 {firstDay && isFirstWeekOfMonth ? 
                                                     new Date(firstDay.date).toLocaleDateString('de-DE', { month: 'short' }) : 
@@ -68,7 +68,7 @@ const DetailedActivity: React.FC<DetailedActivityProps> = ({
                                 {/* Day labels on the left */}
                                 <div className="flex flex-col space-y-1 mr-2 w-8">
                                     {['Mo', 'Mi', 'Fr'].map(day => (
-                                        <div key={day} className="h-6 text-xs text-gray-500 dark:text-gray-400 leading-6">
+                                        <div key={day} className="h-6 text-xs text-muted-foreground leading-6">
                                             {day}
                                         </div>
                                     ))}
@@ -81,7 +81,7 @@ const DetailedActivity: React.FC<DetailedActivityProps> = ({
                                             {week.map((day, dayIndex) => (
                                                 <div
                                                     key={dayIndex}
-                                                    className="w-full h-6 rounded-sm border border-gray-100 dark:border-gray-700"
+                                                    className="w-full h-6 rounded-sm border border-border/40"
                                                     style={{
                                                         backgroundColor: colors[getColorIndex(day.value)]
                                                     }}
@@ -95,19 +95,19 @@ const DetailedActivity: React.FC<DetailedActivityProps> = ({
                             
                             {/* GitHub-style legend */}
                             <div className="mt-4 flex items-center justify-end space-x-1">
-                                <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">Weniger</span>
+                                <span className="text-xs text-muted-foreground mr-2">Weniger</span>
                                 {colors.map((color, index) => (
                                     <div
                                         key={index}
-                                        className="w-4 h-4 rounded-sm border border-gray-100 dark:border-gray-700"
+                                        className="w-4 h-4 rounded-sm border border-border/40"
                                         style={{ backgroundColor: color }}
                                     />
                                 ))}
-                                <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">Mehr</span>
+                                <span className="text-xs text-muted-foreground ml-2">Mehr</span>
                             </div>
-                            
+
                             {/* Time legend */}
-                            <div className="mt-2 flex items-center justify-end space-x-6 text-xs text-gray-500 dark:text-gray-400">
+                            <div className="mt-2 flex items-center justify-end space-x-6 text-xs text-muted-foreground">
                                 <span>0h</span>
                                 <span>&lt;1h</span>
                                 <span>&lt;2h</span>

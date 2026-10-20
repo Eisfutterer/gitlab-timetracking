@@ -20,26 +20,26 @@ function TierBadge({ tier, color }: { tier: string; color: string }) {
 export default function GamificationCard({ members }: Props) {
     return (
         <div className="space-y-4">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Gamification</h2>
+            <h2 className="text-2xl font-semibold tracking-tight text-foreground">Gamification</h2>
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {members.map((m, idx) => (
                     <div
                         key={m.name}
-                        className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900"
+                        className="bg-card border border-border rounded-xl p-4 shadow-sm"
                     >
                         {/* Header */}
                         <div className="flex items-start justify-between gap-2">
                             <div>
-                                <p className="font-semibold text-gray-900 dark:text-gray-100">{m.name}</p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">
+                                <p className="font-semibold text-foreground">{m.name}</p>
+                                <p className="text-xs text-muted-foreground">
                                     {m.totalHours.toFixed(1)} h · {m.activeWeeks} Wochen
                                 </p>
                             </div>
                             <div className="flex flex-col items-end gap-1">
                                 {idx === 0 && <span className="text-lg">👑</span>}
                                 <TierBadge tier={m.levelInfo.tier} color={m.levelInfo.tierColor} />
-                                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                                <span className="text-xs font-medium text-muted-foreground">
                                     Lvl {m.levelInfo.level}
                                 </span>
                             </div>
@@ -47,11 +47,11 @@ export default function GamificationCard({ members }: Props) {
 
                         {/* XP bar */}
                         <div className="mt-3">
-                            <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
+                            <div className="flex justify-between text-xs text-muted-foreground mb-1">
                                 <span>{m.xp} XP</span>
                                 <span>+{m.levelInfo.xpForNextLevel - Math.round(m.levelInfo.xpPercent / 100 * m.levelInfo.xpForNextLevel)} für nächstes Level</span>
                             </div>
-                            <div className="h-2 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
+                            <div className="h-2 rounded-full bg-muted overflow-hidden">
                                 <div
                                     className="h-full rounded-full transition-all"
                                     style={{ width: `${m.levelInfo.xpPercent}%`, backgroundColor: m.levelInfo.tierColor }}

@@ -6,11 +6,11 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const variantClasses = {
-    default: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-    secondary: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200',
-    success: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-    warning: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-    destructive: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+    default: 'bg-primary text-primary-foreground',
+    secondary: 'bg-secondary text-secondary-foreground',
+    success: 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-400',
+    warning: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-400',
+    destructive: 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-400',
 };
 
 const Badge = React.forwardRef<HTMLDivElement, BadgeProps>(

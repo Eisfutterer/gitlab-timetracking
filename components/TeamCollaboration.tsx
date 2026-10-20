@@ -18,21 +18,21 @@ const TeamCollaboration: React.FC<TeamCollaborationProps> = ({
     COLORS 
 }) => {
     return (
-        <div className="bg-white dark:bg-gray-900 p-4 rounded-lg shadow">
-            <h2 className="text-xl font-bold mb-6 text-gray-800 dark:text-gray-200">Team Zusammenarbeit</h2>
+        <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
+            <h2 className="text-2xl font-semibold tracking-tight text-foreground mb-6">Team Zusammenarbeit</h2>
             <div className="grid grid-cols-1 gap-6">
                 {/* Team Collaboration Network */}
                 <div>
-                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{CHART_TITLES.TOP_COLLABORATIONS}</h4>
+                    <h4 className="text-sm font-medium text-muted-foreground mb-2">{CHART_TITLES.TOP_COLLABORATIONS}</h4>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {collaborationData.slice(0, DISPLAY_CONFIG.TOP_COLLABORATIONS).map((collab, index) => (
-                            <div key={index} className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                            <div key={index} className="bg-muted/50 p-4 rounded-lg">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <p className="text-lg font-medium text-gray-800 dark:text-gray-200">
+                                        <p className="text-lg font-semibold text-foreground">
                                             {collab.source} + {collab.target}
                                         </p>
-                                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                        <p className="text-sm text-muted-foreground mt-1">
                                             {collab.value} gemeinsame Issues
                                         </p>
                                     </div>
@@ -47,7 +47,7 @@ const TeamCollaboration: React.FC<TeamCollaborationProps> = ({
 
                 {/* Average Team Members per Issue */}
                 <div>
-                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{CHART_TITLES.AVERAGE_TEAM_SIZE}</h4>
+                    <h4 className="text-sm font-medium text-muted-foreground mb-2">{CHART_TITLES.AVERAGE_TEAM_SIZE}</h4>
                     <ResponsiveContainer width="100%" height={CHART_CONFIG.HEIGHTS.MEDIUM}>
                         <BarChart data={averageTeamMembersData}>
                             <CartesianGrid strokeDasharray="3 3" />

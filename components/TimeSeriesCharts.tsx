@@ -23,12 +23,12 @@ const TimeSeriesCharts: React.FC<TimeSeriesChartsProps> = ({
     COLORS 
 }) => {
     return (
-        <div className="bg-white dark:bg-gray-900 p-4 rounded-lg shadow">
-            <h2 className="text-xl font-bold mb-6 text-gray-800 dark:text-gray-200">Zeitliche Entwicklung</h2>
+        <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
+            <h2 className="text-2xl font-semibold tracking-tight text-foreground mb-6">Zeitliche Entwicklung</h2>
             <div className="grid grid-cols-1 gap-6">
                 {/* Velocity Chart */}
                 <div>
-                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{CHART_TITLES.WEEKLY_PERFORMANCE}</h4>
+                    <h4 className="text-sm font-medium text-muted-foreground mb-2">{CHART_TITLES.WEEKLY_PERFORMANCE}</h4>
                     <ResponsiveContainer width="100%" height={CHART_CONFIG.HEIGHTS.SMALL}>
                         <BarChart data={projectMetrics.sprintData}>
                             <CartesianGrid strokeDasharray="3 3" />
@@ -47,7 +47,7 @@ const TimeSeriesCharts: React.FC<TimeSeriesChartsProps> = ({
 
                 {/* Cumulative Progress */}
                 <div>
-                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{CHART_TITLES.CUMULATIVE_PROGRESS}</h4>
+                    <h4 className="text-sm font-medium text-muted-foreground mb-2">{CHART_TITLES.CUMULATIVE_PROGRESS}</h4>
                     <ResponsiveContainer width="100%" height={CHART_CONFIG.HEIGHTS.SMALL}>
                         <AreaChart data={projectMetrics.sprintData.map((sprint, index, array) => ({
                             sprint: `Sprint ${index + 1}`,
@@ -75,7 +75,7 @@ const TimeSeriesCharts: React.FC<TimeSeriesChartsProps> = ({
 
                 {/* Team Activity Comparison */}
                 <div>
-                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{CHART_TITLES.TEAM_ACTIVITY_COMPARISON}</h4>
+                    <h4 className="text-sm font-medium text-muted-foreground mb-2">{CHART_TITLES.TEAM_ACTIVITY_COMPARISON}</h4>
                     <ResponsiveContainer width="100%" height={CHART_CONFIG.HEIGHTS.SMALL}>
                         <BarChart data={projectMetrics.sprintData}>
                             <CartesianGrid strokeDasharray="3 3" />
@@ -101,7 +101,7 @@ const TimeSeriesCharts: React.FC<TimeSeriesChartsProps> = ({
 
                 {/* Line Chart - Hours per Week per Person */}
                 <div>
-                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{CHART_TITLES.HOURS_PER_WEEK_PER_PERSON}</h4>
+                    <h4 className="text-sm font-medium text-muted-foreground mb-2">{CHART_TITLES.HOURS_PER_WEEK_PER_PERSON}</h4>
                     <ResponsiveContainer width="100%" height={CHART_CONFIG.HEIGHTS.MEDIUM}>
                         <LineChart data={(() => {
                             return [...lineData].sort((a, b) => {
@@ -149,7 +149,7 @@ const TimeSeriesCharts: React.FC<TimeSeriesChartsProps> = ({
 
                 {/* Category Trend */}
                 <div>
-                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{CHART_TITLES.CATEGORY_TREND}</h4>
+                    <h4 className="text-sm font-medium text-muted-foreground mb-2">{CHART_TITLES.CATEGORY_TREND}</h4>
                     <ResponsiveContainer width="100%" height={CHART_CONFIG.HEIGHTS.SMALL}>
                         <AreaChart data={projectMetrics.sprintData}>
                             <CartesianGrid strokeDasharray="3 3" />
