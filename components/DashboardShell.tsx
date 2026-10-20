@@ -18,6 +18,7 @@ import EpicGraph from './EpicGraph';
 import MergeRequestAnalysis from './MergeRequestAnalysis';
 import Leaderboard from './Leaderboard';
 import GamificationCard from './GamificationCard';
+import GroupComparison from './GroupComparison';
 
 interface DashboardShellProps extends ChartData {
     issues: Issue[];
@@ -31,7 +32,7 @@ const formatTime = (seconds: number): string => {
     return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}h`;
 };
 
-const SECTION_IDS = ['epics', 'overview', 'activity', 'timeseries', 'team', 'productivity', 'collaboration', 'issues', 'mergerequests', 'leaderboard', 'gamification'];
+const SECTION_IDS = ['epics', 'overview', 'activity', 'timeseries', 'team', 'productivity', 'collaboration', 'issues', 'mergerequests', 'leaderboard', 'gamification', 'groups'];
 
 const DashboardShell: React.FC<DashboardShellProps> = ({
     pieData,
@@ -134,6 +135,10 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
 
                 <section id="section-gamification">
                     <GamificationCard members={gamification} />
+                </section>
+
+                <section id="section-groups">
+                    <GroupComparison />
                 </section>
 
             </div>

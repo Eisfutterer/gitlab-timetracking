@@ -2,6 +2,7 @@
 export const GITLAB_CONFIG = {
     API_URL: 'https://gitlab.com/api/graphql',
     GROUP_PATH: 'dhbw-se/software-engineering-i-tinf25b6/g4-mergeconflict',
+    PARENT_GROUP_PATH: 'dhbw-se/software-engineering-i-tinf25b6',
     ISSUE_BASE_URL: 'https://gitlab.com/dhbw-se/software-engineering-i-tinf25b6/g4-mergeconflict/-/issues'
 } as const;
 

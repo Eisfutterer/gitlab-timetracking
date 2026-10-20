@@ -17,6 +17,7 @@ const SECTIONS = [
     { id: 'mergerequests', label: 'Merge Requests' },
     { id: 'leaderboard', label: 'Leaderboard' },
     { id: 'gamification', label: 'Gamification' },
+    { id: 'groups', label: 'Gruppen-Vergleich' },
 ];
 
 interface NavbarProps {
