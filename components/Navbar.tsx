@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { useTheme } from 'next-themes';
 import { Moon, Sun, BarChart2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -23,9 +24,10 @@ const SECTIONS = [
 interface NavbarProps {
     activeSection: string;
     onSectionChange: (id: string) => void;
+    extraControls?: React.ReactNode;
 }
 
-export default function Navbar({ activeSection, onSectionChange }: NavbarProps) {
+export default function Navbar({ activeSection, onSectionChange, extraControls }: NavbarProps) {
     const { theme, setTheme } = useTheme();
 
     return (
@@ -53,6 +55,8 @@ export default function Navbar({ activeSection, onSectionChange }: NavbarProps) 
                             </button>
                         ))}
                     </div>
+
+                    {extraControls}
 
                     <Button
                         variant="ghost"
