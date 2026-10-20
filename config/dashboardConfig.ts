@@ -7,7 +7,11 @@ export const GITLAB_CONFIG = {
 
 // Team Members
 export const TEAM_MEMBERS = [
-    "Eisfutterer"
+    "Eisfutterer",
+    "Tupfenschweif001",
+    "ColinD06",
+    "OfficerYoda",
+    "FindusFM22"
 ] as const;
 
 // Category Configuration
