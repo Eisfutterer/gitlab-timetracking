@@ -1,5 +1,6 @@
 import React from 'react';
 import { CHART_CONFIG, KPI_LABELS } from '../config/dashboardConfig';
+import CollapsibleCard from './CollapsibleCard';
 import { ProjectMetrics, Issue } from '@/types/dashboard';
 
 interface ProjectOverviewProps {
@@ -12,8 +13,8 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({ projectMetrics, issue
     const avgTime = completedIssues.length > 0
         ? completedIssues.reduce((sum, i) => sum + i.totalTimeSpent, 0) / completedIssues.length / 3600
         : 0;
-    const mainCategory = [...projectMetrics.categoryDistribution].sort((a, b) => b.hours - a.hours)[0];
-    const mostProductiveWeek = [...projectMetrics.sprintData].sort((a, b) => b.totalHours - a.totalHours)[0];
+    const mainCategory = [...projectMetrics.categoryDistribution].sort((a, b) => b.hours - a.hours)[0] ?? { category: '—', hours: 0 };
+    const mostProductiveWeek = [...projectMetrics.sprintData].sort((a, b) => b.totalHours - a.totalHours)[0] ?? { totalHours: 0, sprintStart: '—', sprintEnd: '—' };
 
     const stats = [
         {
@@ -39,8 +40,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({ projectMetrics, issue
     ];
 
     return (
-        <div className="space-y-4">
-            <h2 className="text-xl font-semibold tracking-tight text-foreground">Projektübersicht</h2>
+        <CollapsibleCard title="Projektübersicht" className="space-y-4">
             <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                 {stats.map((s) => (
                     <div
@@ -59,7 +59,7 @@ const ProjectOverview: React.FC<ProjectOverviewProps> = ({ projectMetrics, issue
                     </div>
                 ))}
             </div>
-        </div>
+        </CollapsibleCard>
     );
 };
 

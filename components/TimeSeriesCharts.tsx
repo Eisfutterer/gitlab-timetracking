@@ -1,13 +1,14 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useTheme } from 'next-themes';
 import {
     BarChart, Bar, CartesianGrid, XAxis, YAxis, Tooltip, Legend,
     ResponsiveContainer, Line, LineChart, Area, AreaChart, ReferenceLine
 } from 'recharts';
-import { CHART_CONFIG, CHART_TITLES, TOOLTIP_LABELS } from '../config/dashboardConfig';
+import { CHART_CONFIG, CHART_TITLES, TOOLTIP_LABELS, COLORS as CFG_COLORS } from '../config/dashboardConfig';
 import { ProjectMetrics } from '@/types/dashboard';
+import CollapsibleCard from './CollapsibleCard';
 
 interface TimeSeriesChartsProps {
     projectMetrics: ProjectMetrics;
@@ -24,6 +25,7 @@ function useChartTheme() {
     return {
         grid:    dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
         axis:    dark ? '#71717a' : '#a1a1aa',
+        dark,
         tooltip: {
             contentStyle: {
                 backgroundColor: dark ? '#1c1c1e' : '#ffffff',
@@ -34,8 +36,33 @@ function useChartTheme() {
             },
             labelStyle: { color: dark ? '#fafafa' : '#0a0a0a', fontWeight: 600 },
             itemStyle:  { color: dark ? '#a1a1aa' : '#71717a' },
+            cursor:     { fill: dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' },
         },
     };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function SumTooltip({ active, payload, label, dark, labelPrefix }: any) {
+    if (!active || !payload?.length) return null;
+    const total = payload.reduce((s: number, p: { value: number }) => s + (p.value ?? 0), 0);
+    const bg  = dark ? '#1c1c1e' : '#ffffff';
+    const br  = dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+    const fg  = dark ? '#fafafa' : '#0a0a0a';
+    const muted = dark ? '#a1a1aa' : '#71717a';
+    const displayLabel = labelPrefix ? `${labelPrefix}${label}` : label;
+    return (
+        <div style={{ backgroundColor: bg, border: `1px solid ${br}`, borderRadius: '0.625rem', padding: '8px 12px', fontSize: '0.8125rem' }}>
+            <p style={{ color: fg, fontWeight: 600, marginBottom: 6 }}>{displayLabel}</p>
+            {payload.map((p: { name: string; value: number; color: string }) => (
+                <p key={p.name} style={{ color: muted, margin: '2px 0' }}>
+                    {p.name} : {(p.value ?? 0).toFixed(2)}h
+                </p>
+            ))}
+            <p style={{ color: fg, fontWeight: 600, borderTop: `1px solid ${br}`, marginTop: 6, paddingTop: 6 }}>
+                Σ {total.toFixed(2)} h
+            </p>
+        </div>
+    );
 }
 
 const TimeSeriesCharts: React.FC<TimeSeriesChartsProps> = ({
@@ -47,118 +74,35 @@ const TimeSeriesCharts: React.FC<TimeSeriesChartsProps> = ({
 }) => {
     const ct = useChartTheme();
 
+    const sortedLineData = useMemo(() => lineData, [lineData]);
+
     return (
-        <div className="rounded-xl bg-card ring-1 ring-foreground/10 p-6">
-            <h2 className="text-xl font-semibold tracking-tight text-foreground mb-6">Zeitliche Entwicklung</h2>
+        <div>
+            <CollapsibleCard title="Zeitliche Entwicklung">
             <div className="grid grid-cols-1 gap-6">
-                {/* Velocity Chart */}
-                <div>
-                    <h4 className="text-sm font-medium text-muted-foreground mb-2">{CHART_TITLES.WEEKLY_PERFORMANCE}</h4>
-                    <ResponsiveContainer width="100%" height={CHART_CONFIG.HEIGHTS.SMALL}>
-                        <BarChart data={projectMetrics.sprintData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke={ct.grid} />
-                            <XAxis dataKey="sprintStart" tick={{ fill: ct.axis, fontSize: 12 }} />
-                            <YAxis tick={{ fill: ct.axis, fontSize: 12 }} />
-                            <Tooltip
-                                formatter={(value: number) => [`${value.toFixed(CHART_CONFIG.DECIMAL_PLACES)}h`, TOOLTIP_LABELS.HOURS_PER_WEEK]}
-                                {...ct.tooltip}
-                            />
-                            <Bar dataKey="totalHours" fill="#82ca9d" name={TOOLTIP_LABELS.HOURS_PER_WEEK} radius={[3, 3, 0, 0]} />
-                            <ReferenceLine
-                                y={projectMetrics.averageVelocity}
-                                stroke="#ef4444"
-                                label={{ value: 'Durchschnitt', position: 'right', fill: ct.axis, fontSize: 11 }}
-                            />
-                        </BarChart>
-                    </ResponsiveContainer>
-                </div>
-
-                {/* Cumulative Progress */}
-                <div>
-                    <h4 className="text-sm font-medium text-muted-foreground mb-2">{CHART_TITLES.CUMULATIVE_PROGRESS}</h4>
-                    <ResponsiveContainer width="100%" height={CHART_CONFIG.HEIGHTS.SMALL}>
-                        <AreaChart data={projectMetrics.sprintData.map((sprint, index, array) => ({
-                            sprint: `Sprint ${index + 1}`,
-                            cumulativeHours: array
-                                .slice(0, index + 1)
-                                .reduce((sum, s) => sum + s.totalHours, 0)
-                        }))}>
-                            <CartesianGrid strokeDasharray="3 3" stroke={ct.grid} />
-                            <XAxis dataKey="sprint" tick={{ fill: ct.axis, fontSize: 12 }} />
-                            <YAxis tick={{ fill: ct.axis, fontSize: 12 }} />
-                            <Tooltip
-                                formatter={(value: number) => [`${value.toFixed(CHART_CONFIG.DECIMAL_PLACES)}h`, TOOLTIP_LABELS.TOTAL_HOURS]}
-                                {...ct.tooltip}
-                            />
-                            <Area
-                                type="monotone"
-                                dataKey="cumulativeHours"
-                                stroke="#8884d8"
-                                fill="#8884d8"
-                                fillOpacity={0.3}
-                                name="Kumulierte Stunden"
-                            />
-                        </AreaChart>
-                    </ResponsiveContainer>
-                </div>
-
-                {/* Team Activity Comparison */}
-                <div>
-                    <h4 className="text-sm font-medium text-muted-foreground mb-2">{CHART_TITLES.TEAM_ACTIVITY_COMPARISON}</h4>
-                    <ResponsiveContainer width="100%" height={CHART_CONFIG.HEIGHTS.SMALL}>
-                        <BarChart data={projectMetrics.sprintData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke={ct.grid} />
-                            <XAxis dataKey="sprintStart" tick={{ fill: ct.axis, fontSize: 12 }} />
-                            <YAxis tick={{ fill: ct.axis, fontSize: 12 }} />
-                            <Tooltip
-                                labelFormatter={(value) => `Sprint ${value}`}
-                                formatter={(value: number) => [`${value.toFixed(CHART_CONFIG.DECIMAL_PLACES)}h`, TOOLTIP_LABELS.HOURS]}
-                                {...ct.tooltip}
-                            />
-                            <Legend wrapperStyle={{ color: ct.axis, fontSize: 12 }} />
-                            {Object.keys(projectMetrics.sprintData[0]?.userHours || {}).map((user, index) => (
-                                <Bar
-                                    key={user}
-                                    dataKey={`userHours.${user}`}
-                                    name={user}
-                                    stackId="a"
-                                    fill={TEAM_COLORS[index % TEAM_COLORS.length]}
-                                />
-                            ))}
-                        </BarChart>
-                    </ResponsiveContainer>
-                </div>
-
                 {/* Line Chart - Hours per Week per Person */}
                 <div>
                     <h4 className="text-sm font-medium text-muted-foreground mb-2">{CHART_TITLES.HOURS_PER_WEEK_PER_PERSON}</h4>
                     <ResponsiveContainer width="100%" height={CHART_CONFIG.HEIGHTS.MEDIUM}>
-                        <LineChart data={(() => {
-                            return [...lineData].sort((a, b) => {
-                                const [weekA, yearA] = a.week.split(' ')[1].split('/');
-                                const [weekB, yearB] = b.week.split(' ')[1].split('/');
-                                return (parseInt(yearA) * 100 + parseInt(weekA)) - (parseInt(yearB) * 100 + parseInt(weekB));
-                            });
-                        })()}>
+                        <LineChart data={sortedLineData}>
                             <XAxis
                                 dataKey="week"
                                 tick={{ fill: ct.axis, fontSize: 12 }}
-                                tickFormatter={(value) => `KW ${value.split(' ')[1]}`}
+                                tickFormatter={(value) => value}
                             />
                             <YAxis
                                 tick={{ fill: ct.axis, fontSize: 12 }}
                                 label={{ value: TOOLTIP_LABELS.HOURS, angle: -90, position: 'insideLeft', fill: ct.axis }}
                             />
                             <Tooltip
-                                formatter={(value: number) => [`${value}h`, TOOLTIP_LABELS.HOURS]}
-                                labelFormatter={(value) => `Kalenderwoche ${value.split(' ')[1]}`}
-                                {...ct.tooltip}
+                                content={<SumTooltip dark={ct.dark} />}
+                                cursor={false}
                             />
                             <Legend wrapperStyle={{ color: ct.axis, fontSize: 12 }} />
                             {barData.map((entry, index) => (
                                 <Line
                                     key={index}
-                                    type="basis"
+                                    type="monotone"
                                     dataKey={entry.name}
                                     stroke={TEAM_COLORS[index % TEAM_COLORS.length]}
                                     strokeWidth={2}
@@ -190,27 +134,30 @@ const TimeSeriesCharts: React.FC<TimeSeriesChartsProps> = ({
                             <XAxis dataKey="sprintStart" tick={{ fill: ct.axis, fontSize: 12 }} />
                             <YAxis tick={{ fill: ct.axis, fontSize: 12 }} />
                             <Tooltip
-                                labelFormatter={(value) => `Sprint ${value}`}
-                                formatter={(value: number) => [`${value.toFixed(CHART_CONFIG.DECIMAL_PLACES)}h`, TOOLTIP_LABELS.HOURS]}
-                                {...ct.tooltip}
+                                content={<SumTooltip dark={ct.dark} />}
+                                cursor={false}
                             />
                             <Legend wrapperStyle={{ color: ct.axis, fontSize: 12 }} />
-                            {Object.keys(projectMetrics.sprintData[0]?.categoryHours || {}).map((category, index) => (
-                                <Area
-                                    key={category}
-                                    type="basis"
-                                    dataKey={`categoryHours.${category}`}
-                                    stackId="1"
-                                    stroke={COLORS[index % COLORS.length]}
-                                    fill={COLORS[index % COLORS.length]}
-                                    fillOpacity={0.6}
-                                    name={category}
-                                />
-                            ))}
+                            {Object.keys(projectMetrics.sprintData[0]?.categoryHours || {}).map((category, index) => {
+                                const color = CFG_COLORS.CATEGORY[category as keyof typeof CFG_COLORS.CATEGORY] ?? COLORS[index % COLORS.length];
+                                return (
+                                    <Area
+                                        key={category}
+                                        type="monotone"
+                                        dataKey={`categoryHours.${category}`}
+                                        stackId="1"
+                                        stroke={color}
+                                        fill={color}
+                                        fillOpacity={0.6}
+                                        name={category}
+                                    />
+                                );
+                            })}
                         </AreaChart>
                     </ResponsiveContainer>
                 </div>
             </div>
+            </CollapsibleCard>
         </div>
     );
 };

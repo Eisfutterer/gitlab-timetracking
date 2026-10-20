@@ -4,6 +4,8 @@ export interface Issue {
     totalTimeSpent: number;
     category: string;
     iid: string;
+    state: 'opened' | 'closed';
+    createdAt: string;
     labels: {
         nodes: Array<{title: string}>;
     };
@@ -37,7 +39,7 @@ export interface Timelog {
         labels: { nodes: Array<{title: string}> };
         timeEstimate: number;
         totalTimeSpent: number;
-    };
+    } | null;
     spentAt: string;
     timeSpent: number;
 }
@@ -102,4 +104,31 @@ export interface MergeRequest {
     reviewers: { nodes: Array<{ name: string; username: string }> };
     labels: { nodes: Array<{ title: string }> };
     webUrl: string;
+}
+
+export interface CFDDataPoint {
+    date: string;
+    opened: number;
+    closed: number;
+    total: number;
+}
+
+export interface LabelTimelinePoint {
+    week: string;
+    [label: string]: number | string;
+}
+
+export interface UserCategoryRow {
+    name: string;
+    total: number;
+    percentage: number;
+    [category: string]: number | string;
+}
+
+export interface PersonDetail {
+    name: string;
+    categoryHours: Record<string, number>;
+    hoursBySprintNumber: number[];
+    focusLastCycle: string;
+    focusThisCycle: string;
 }

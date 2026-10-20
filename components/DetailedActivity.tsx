@@ -4,6 +4,7 @@ import React from 'react';
 import { useTheme } from 'next-themes';
 import { CHART_CONFIG, CHART_TITLES, TOOLTIP_LABELS } from '@/config/dashboardConfig';
 import {HeatmapData} from "@/types/dashboard";
+import CollapsibleCard from './CollapsibleCard';
 
 interface DetailedActivityProps {
     heatmapData: HeatmapData[][];
@@ -30,8 +31,7 @@ const DetailedActivity: React.FC<DetailedActivityProps> = ({
     };
 
     return (
-        <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
-            <h2 className="text-2xl font-semibold tracking-tight text-foreground mb-6">Detaillierte Aktivität</h2>
+        <CollapsibleCard title="Detaillierte Aktivität">
             <div className="space-y-6">
                 {/* GitHub-style Activity Heatmap */}
                 <div>
@@ -67,7 +67,7 @@ const DetailedActivity: React.FC<DetailedActivityProps> = ({
                             <div className="flex items-start space-x-2">
                                 {/* Day labels on the left */}
                                 <div className="flex flex-col space-y-1 mr-2 w-8">
-                                    {['Mo', 'Mi', 'Fr'].map(day => (
+                                    {['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map(day => (
                                         <div key={day} className="h-6 text-xs text-muted-foreground leading-6">
                                             {day}
                                         </div>
@@ -118,7 +118,7 @@ const DetailedActivity: React.FC<DetailedActivityProps> = ({
                     </div>
                 </div>
             </div>
-        </div>
+        </CollapsibleCard>
     );
 };
 

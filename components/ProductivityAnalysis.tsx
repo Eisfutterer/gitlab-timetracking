@@ -8,6 +8,7 @@ import {
 } from 'recharts';
 import { CHART_CONFIG, CHART_TITLES, TOOLTIP_LABELS, CHART_LABELS } from '@/config/dashboardConfig';
 import { ProductivityPatterns } from '@/types/dashboard';
+import CollapsibleCard from './CollapsibleCard';
 
 interface ProductivityAnalysisProps {
     productivityPatterns: ProductivityPatterns;
@@ -29,6 +30,7 @@ function useChartTheme() {
             },
             labelStyle: { color: dark ? '#fafafa' : '#0a0a0a', fontWeight: 600 },
             itemStyle:  { color: dark ? '#a1a1aa' : '#71717a' },
+            cursor:     { fill: dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' },
         },
     };
 }
@@ -37,8 +39,7 @@ const ProductivityAnalysis: React.FC<ProductivityAnalysisProps> = ({ productivit
     const ct = useChartTheme();
 
     return (
-        <div className="rounded-xl bg-card ring-1 ring-foreground/10 p-6">
-            <h2 className="text-xl font-semibold tracking-tight text-foreground mb-6">Produktivitätsanalyse</h2>
+        <CollapsibleCard title="Produktivitätsanalyse">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Hourly Pattern */}
                 <div>
@@ -102,7 +103,7 @@ const ProductivityAnalysis: React.FC<ProductivityAnalysisProps> = ({ productivit
                     </ResponsiveContainer>
                 </div>
             </div>
-        </div>
+        </CollapsibleCard>
     );
 };
 

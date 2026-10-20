@@ -2,6 +2,7 @@
 
 import { MergeRequest } from '@/types/dashboard';
 import { Badge } from '@/components/ui/badge';
+import CollapsibleCard from './CollapsibleCard';
 
 interface Props {
     mergeRequests: MergeRequest[];
@@ -47,15 +48,13 @@ export default function MergeRequestAnalysis({ mergeRequests }: Props) {
     const open = mergeRequests.filter(m => m.state === 'opened').length;
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-semibold tracking-tight text-foreground">Merge Requests</h2>
-                <div className="flex gap-2">
-                    <Badge variant="success">{merged} Merged</Badge>
-                    <Badge variant="default">{open} Offen</Badge>
-                    <Badge variant="secondary">{mergeRequests.length} Gesamt</Badge>
-                </div>
+        <CollapsibleCard title="Merge Requests" extra={
+            <div className="flex gap-2">
+                <Badge variant="success">{merged} Merged</Badge>
+                <Badge variant="default">{open} Offen</Badge>
+                <Badge variant="secondary">{mergeRequests.length} Gesamt</Badge>
             </div>
+        }>
 
             {/* Review coverage per person */}
             <div className="rounded-xl bg-card ring-1 ring-foreground/10 p-4">
@@ -117,6 +116,6 @@ export default function MergeRequestAnalysis({ mergeRequests }: Props) {
                     )}
                 </div>
             </div>
-        </div>
+        </CollapsibleCard>
     );
 }

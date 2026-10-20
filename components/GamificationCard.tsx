@@ -1,6 +1,7 @@
 'use client';
 
 import { MemberGamification } from '@/lib/gamification';
+import CollapsibleCard from './CollapsibleCard';
 
 interface Props {
     members: MemberGamification[];
@@ -22,8 +23,7 @@ const TIER_BAR: Record<string, string> = {
 
 export default function GamificationCard({ members }: Props) {
     return (
-        <div className="space-y-3">
-            <h2 className="text-xl font-semibold tracking-tight text-foreground">Gamification</h2>
+        <CollapsibleCard title="Gamification">
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {members.map((m) => (
                     <div key={m.name} className="rounded-xl bg-card ring-1 ring-foreground/10 p-4 flex flex-col gap-3">
@@ -74,6 +74,6 @@ export default function GamificationCard({ members }: Props) {
                     </div>
                 ))}
             </div>
-        </div>
+        </CollapsibleCard>
     );
 }

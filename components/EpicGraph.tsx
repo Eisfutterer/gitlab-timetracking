@@ -2,20 +2,12 @@
 
 import React, { useState } from 'react';
 import { Epic, EpicIssue } from '../types/dashboard';
-import { GITLAB_CONFIG, CATEGORIES } from '../config/dashboardConfig';
-
-const CATEGORY_COLORS: Record<string, string> = {
-    [CATEGORIES.FRONTEND]: '#0088FE',
-    [CATEGORIES.BACKEND]: '#00C49F',
-    [CATEGORIES.TESTING]: '#FFBB28',
-    [CATEGORIES.PROJEKTMANAGEMENT]: '#FF8042',
-    [CATEGORIES.DOKUMENTATION]: '#8884D8',
-    [CATEGORIES.REQUIREMENTS_ENGINEERING]: '#82CA9D',
-};
+import { GITLAB_CONFIG, CATEGORIES, COLORS } from '../config/dashboardConfig';
+import CollapsibleCard from './CollapsibleCard';
 
 function getIssueColor(issue: EpicIssue): string {
     const label = issue.labels.nodes.find(l => Object.values(CATEGORIES).includes(l.title as never));
-    return label ? (CATEGORY_COLORS[label.title] ?? '#94a3b8') : '#94a3b8';
+    return label ? (COLORS.CATEGORY[label.title as keyof typeof COLORS.CATEGORY] ?? '#94a3b8') : '#94a3b8';
 }
 
 function IssueCard({ issue }: { issue: EpicIssue }) {
@@ -114,8 +106,7 @@ interface EpicGraphProps {
 
 export default function EpicGraph({ epics }: EpicGraphProps) {
     return (
-        <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
-            <h2 className="text-2xl font-semibold tracking-tight text-foreground mb-6">Epics & Issues</h2>
+        <CollapsibleCard title="Epics & Issues">
             <div className="space-y-6">
                 {epics.map(epic => (
                     <EpicNode key={epic.id} epic={epic} depth={0} />
@@ -124,6 +115,6 @@ export default function EpicGraph({ epics }: EpicGraphProps) {
                     <p className="text-muted-foreground text-sm">Keine Epics gefunden.</p>
                 )}
             </div>
-        </div>
+        </CollapsibleCard>
     );
 }

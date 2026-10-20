@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { GroupSummary } from '@/app/api/groups/route';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button';
+import CollapsibleCard from './CollapsibleCard';
 
 export default function GroupComparison() {
     const [groups, setGroups] = useState<GroupSummary[]>([]);
@@ -35,13 +35,7 @@ export default function GroupComparison() {
     const maxHours = groups[0]?.totalHours ?? 1;
 
     return (
-        <div className="space-y-4">
-            <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-semibold tracking-tight text-foreground">Gruppen-Vergleich</h2>
-                <Button variant="outline" size="sm" onClick={fetchGroups} disabled={loading}>
-                    {loading ? 'Lädt…' : 'Aktualisieren'}
-                </Button>
-            </div>
+        <CollapsibleCard title="Gruppen-Vergleich">
 
             {error && (
                 <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
@@ -63,22 +57,21 @@ export default function GroupComparison() {
                 ) : (
                     <div className="divide-y divide-border">
                         {groups.map((g, i) => {
-                            const isOurs = g.fullPath === 'dhbw-se/software-engineering-i-tinf25b6/g4-mergeconflict';
                             return (
                                 <div
                                     key={g.fullPath}
-                                    className={`flex items-center gap-4 px-4 py-3 ${isOurs ? 'bg-primary/5' : ''}`}
+                                    className="flex items-center gap-4 px-4 py-3"
                                 >
                                     <span className="w-6 shrink-0 text-right text-sm font-medium text-muted-foreground">
                                         #{i + 1}
                                     </span>
                                     <div className="min-w-0 flex-1">
-                                        <p className={`text-sm font-medium truncate ${isOurs ? 'text-primary font-semibold' : 'text-foreground'}`}>
-                                            {g.name} {isOurs && '← unsere Gruppe'}
+                                        <p className="text-sm font-medium truncate text-foreground">
+                                            {g.name}
                                         </p>
                                         <div className="mt-1 h-1.5 w-full rounded-full bg-muted overflow-hidden">
                                             <div
-                                                className={`h-full rounded-full ${isOurs ? 'bg-primary' : 'bg-muted-foreground/40'}`}
+                                                className="h-full rounded-full bg-muted-foreground/40"
                                                 style={{ width: `${Math.min(100, (g.totalHours / maxHours) * 100)}%` }}
                                             />
                                         </div>
@@ -100,6 +93,6 @@ export default function GroupComparison() {
                     </div>
                 )}
             </div>
-        </div>
+        </CollapsibleCard>
     );
 }

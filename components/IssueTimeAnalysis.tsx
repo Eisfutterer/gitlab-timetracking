@@ -16,6 +16,7 @@ import {
     DEVIATION_THRESHOLDS
 } from '@/config/dashboardConfig';
 import { Issue } from '@/types/dashboard';
+import CollapsibleCard from './CollapsibleCard';
 
 interface IssueTimeAnalysisProps {
     issues: Issue[];
@@ -27,6 +28,7 @@ const IssueTimeAnalysis: React.FC<IssueTimeAnalysisProps> = ({ issues }) => {
     const ct = {
         grid: dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
         axis: dark ? '#71717a' : '#a1a1aa',
+        cursor: { fill: dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' },
         tooltip: {
             contentStyle: {
                 backgroundColor: dark ? '#1c1c1e' : '#ffffff',
@@ -131,8 +133,7 @@ const IssueTimeAnalysis: React.FC<IssueTimeAnalysisProps> = ({ issues }) => {
     });
 
     return (
-        <div className="rounded-xl bg-card ring-1 ring-foreground/10 p-6">
-            <h2 className="text-xl font-semibold tracking-tight text-foreground mb-6">Issue Zeitanalyse</h2>
+        <CollapsibleCard title="Issue Zeitanalyse">
 
             {/* Category Comparison Chart */}
             <div className="mb-8">
@@ -143,7 +144,8 @@ const IssueTimeAnalysis: React.FC<IssueTimeAnalysisProps> = ({ issues }) => {
                         <XAxis dataKey="category" tick={{ fill: ct.axis, fontSize: 12 }} />
                         <YAxis tick={{ fill: ct.axis, fontSize: 12 }} />
                         <Tooltip
-                            formatter={(value: number) => [`${value.toFixed(CHART_CONFIG.DECIMAL_PLACES)}h`, TOOLTIP_LABELS.HOURS]}
+                            formatter={(value: number, name: string) => [`${value.toFixed(CHART_CONFIG.DECIMAL_PLACES)}h`, name]}
+                            cursor={ct.cursor}
                             {...ct.tooltip}
                         />
                         <Legend wrapperStyle={{ color: ct.axis, fontSize: 12 }} />
@@ -163,6 +165,7 @@ const IssueTimeAnalysis: React.FC<IssueTimeAnalysisProps> = ({ issues }) => {
                         <YAxis tick={{ fill: ct.axis, fontSize: 12 }} />
                         <Tooltip
                             formatter={(value: number) => [`${value.toFixed(CHART_CONFIG.DECIMAL_PLACES)}%`, TOOLTIP_LABELS.DEVIATION]}
+                            cursor={ct.cursor}
                             {...ct.tooltip}
                         />
                         <Bar dataKey="averageDeviation" fill="#ffc658" name="Ø Abweichung (%)" radius={[3, 3, 0, 0]} />
@@ -240,7 +243,7 @@ const IssueTimeAnalysis: React.FC<IssueTimeAnalysisProps> = ({ issues }) => {
                     </table>
                 </div>
             </div>
-        </div>
+        </CollapsibleCard>
     );
 };
 

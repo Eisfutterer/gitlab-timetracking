@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useTheme } from 'next-themes';
-import { Moon, Sun, BarChart2 } from 'lucide-react';
+import { Moon, Sun, BarChart2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useAutoRefresh } from '@/lib/hooks';
 
 const SECTIONS = [
     { id: 'epics', label: 'Epics & Issues' },
@@ -29,6 +30,11 @@ interface NavbarProps {
 
 export default function Navbar({ activeSection, onSectionChange, extraControls }: NavbarProps) {
     const { resolvedTheme, setTheme } = useTheme();
+    const [autoRefresh, setAutoRefresh] = useState(false);
+    const { secondsLeft, manualRefresh } = useAutoRefresh(autoRefresh);
+
+    const mins = Math.floor(secondsLeft / 60);
+    const secs = String(secondsLeft % 60).padStart(2, '0');
 
     return (
         <nav className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -61,6 +67,37 @@ export default function Navbar({ activeSection, onSectionChange, extraControls }
                     </div>
 
                     {extraControls}
+
+                    {/* Auto-refresh indicator + toggle */}
+                    <div className="flex shrink-0 items-center gap-1">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={manualRefresh}
+                            aria-label="Manuell aktualisieren"
+                            title="Jetzt aktualisieren"
+                        >
+                            <RefreshCw className="h-4 w-4" />
+                        </Button>
+                        <button
+                            onClick={() => setAutoRefresh(v => !v)}
+                            className={cn(
+                                'flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                autoRefresh
+                                    ? 'bg-accent text-accent-foreground'
+                                    : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+                            )}
+                            title={autoRefresh ? 'Auto-Refresh deaktivieren' : 'Auto-Refresh aktivieren'}
+                        >
+                            <span
+                                className={cn(
+                                    'h-1.5 w-1.5 rounded-full',
+                                    autoRefresh ? 'bg-green-500 animate-pulse' : 'bg-muted-foreground'
+                                )}
+                            />
+                            {autoRefresh ? `${mins}:${secs}` : 'Auto'}
+                        </button>
+                    </div>
 
                     <Button
                         variant="ghost"

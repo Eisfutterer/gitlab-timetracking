@@ -8,6 +8,7 @@ import {
 } from 'recharts';
 import { CHART_CONFIG, CHART_TITLES, TOOLTIP_LABELS, CHART_LABELS, DISPLAY_CONFIG } from '../config/dashboardConfig';
 import { CollaborationData, AverageTeamMembersData } from '@/types/dashboard';
+import CollapsibleCard from './CollapsibleCard';
 
 interface TeamCollaborationProps {
     collaborationData: CollaborationData[];
@@ -31,6 +32,7 @@ function useChartTheme() {
             },
             labelStyle: { color: dark ? '#fafafa' : '#0a0a0a', fontWeight: 600 },
             itemStyle:  { color: dark ? '#a1a1aa' : '#71717a' },
+            cursor:     { fill: dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' },
         },
     };
 }
@@ -43,8 +45,7 @@ const TeamCollaboration: React.FC<TeamCollaborationProps> = ({
     const ct = useChartTheme();
 
     return (
-        <div className="rounded-xl bg-card ring-1 ring-foreground/10 p-6">
-            <h2 className="text-xl font-semibold tracking-tight text-foreground mb-6">Team Zusammenarbeit</h2>
+        <CollapsibleCard title="Team Zusammenarbeit">
             <div className="grid grid-cols-1 gap-6">
                 {/* Top Collaborations */}
                 <div>
@@ -72,14 +73,14 @@ const TeamCollaboration: React.FC<TeamCollaborationProps> = ({
                 <div>
                     <h4 className="text-sm font-medium text-muted-foreground mb-2">{CHART_TITLES.AVERAGE_TEAM_SIZE}</h4>
                     <ResponsiveContainer width="100%" height={CHART_CONFIG.HEIGHTS.MEDIUM}>
-                        <BarChart data={averageTeamMembersData}>
+                        <BarChart data={averageTeamMembersData} margin={{ bottom: 60 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke={ct.grid} />
                             <XAxis
                                 dataKey="category"
                                 tick={{ fill: ct.axis, fontSize: 12 }}
                                 angle={CHART_CONFIG.ANGLES.LABEL_ROTATION}
                                 textAnchor="end"
-                                height={70}
+                                height={80}
                                 interval={0}
                             />
                             <YAxis
@@ -108,7 +109,7 @@ const TeamCollaboration: React.FC<TeamCollaborationProps> = ({
                     </ResponsiveContainer>
                 </div>
             </div>
-        </div>
+        </CollapsibleCard>
     );
 };
 
