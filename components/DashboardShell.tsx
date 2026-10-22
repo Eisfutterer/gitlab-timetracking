@@ -24,7 +24,7 @@ import Leaderboard from './Leaderboard';
 import GroupComparison from './GroupComparison';
 import PresentationControls from './PresentationControls';
 import DateFilterBar from './DateFilterBar';
-import LabelsTimeline from './LabelsTimeline';
+
 import UserCategoryMatrix from './UserCategoryMatrix';
 import CFDChart from './CFDChart';
 import ReportButton from './ReportButton';
@@ -153,7 +153,6 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
                 <IssueAnalysis issueComplexityData={issueComplexityData} COLORS={[...COLORS.PRIMARY]} />
                 <IssueTimeAnalysis issues={issues} />
                 <CFDChart data={cfdData} />
-                <LabelsTimeline data={labelsTimeline} keys={labelsTimelineKeys} />
             </div>
         ),
         leaderboard: <Leaderboard leaderboard={leaderboard} personDetails={personDetails} projectMetrics={projectMetrics} />,
