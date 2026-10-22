@@ -13,12 +13,13 @@ function getIssueColor(issue: EpicIssue): string {
     return label ? (COLORS.CATEGORY[label.title as keyof typeof COLORS.CATEGORY] ?? '#94a3b8') : '#94a3b8';
 }
 
-const DEPTH_COLORS = ['#b45309', '#d97706', '#4ade80', '#34d399', '#60a5fa', '#a78bfa'];
-function depthColor(d: number) { return DEPTH_COLORS[d % DEPTH_COLORS.length]; }
+// Epic depth colors pulled from central PRIMARY palette
+function depthColor(d: number) { return COLORS.PRIMARY[d % COLORS.PRIMARY.length]; }
 
 // ── Card view — vertikale Linienbaumstruktur (erste Iteration) ────────────────
 
-const CONNECTOR = '#52525b'; // zinc-600, looks clean on both themes
+// Connector uses a CSS variable so it respects dark/light theme automatically
+const CONNECTOR = 'var(--border)';
 
 function CardIssueRow({ issue, isLast }: { issue: EpicIssue; isLast: boolean }) {
     const color = getIssueColor(issue);
@@ -312,9 +313,10 @@ function SvgTree({ roots }: { roots: TreeNode[] }) {
                     <line
                         key={e.key}
                         x1={e.x1} y1={e.y1} x2={e.x2} y2={e.y2}
-                        stroke="#71717a"
+                        stroke="currentColor"
                         strokeWidth={1.5}
                         strokeLinecap="round"
+                        className="text-border"
                     />
                 ))}
 
