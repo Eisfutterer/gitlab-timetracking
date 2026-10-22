@@ -452,14 +452,7 @@ function SvgTree({ roots }: { roots: TreeNode[] }) {
                             >
                                 {node.label.slice(0, 4)}
                             </text>
-                            {/* collapse badge */}
-                            {hasKids && !expanded && (
-                                <text x={x} y={y + R + 13} textAnchor="middle" fill="#a1a1aa" fontSize={9}
-                                    style={{ userSelect: 'none', pointerEvents: 'none' }}>
-                                    +{node.children.length}
-                                </text>
-                            )}
-                            {/* title below node (only for visible, non-virtual) */}
+                            {/* title / collapse badge below node */}
                             {node.id !== '__vroot__' && (
                                 <text x={x} y={y + R + 13} textAnchor="middle" fill="#a1a1aa" fontSize={9}
                                     style={{ userSelect: 'none', pointerEvents: 'none' }}>
