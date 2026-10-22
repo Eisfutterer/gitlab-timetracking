@@ -7,6 +7,7 @@ import {
 } from 'recharts';
 import { ProjectMetrics } from '@/types/dashboard';
 import { LeaderboardEntry } from '@/lib/processData';
+import { COLORS } from '@/config/dashboardConfig';
 import CollapsibleCard from './CollapsibleCard';
 
 interface Props {
@@ -14,10 +15,7 @@ interface Props {
     leaderboard: LeaderboardEntry[];
 }
 
-const TEAM_COLORS = [
-    '#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8',
-    '#82CA9D', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4',
-];
+const TEAM_COLORS = COLORS.TEAM;
 
 function useChartTheme() {
     const { resolvedTheme } = useTheme();

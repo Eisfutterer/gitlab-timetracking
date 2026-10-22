@@ -37,7 +37,7 @@ function useChartTheme() {
     };
 }
 
-const TEAM_COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
+const TEAM_COLORS = CFG_COLORS.TEAM;
 
 export default function RadarCategoryChart({ userCategoryMatrix, keys, pieData }: Props) {
     const ct = useChartTheme();

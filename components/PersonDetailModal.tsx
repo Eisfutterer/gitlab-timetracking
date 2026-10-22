@@ -9,7 +9,7 @@ import {
 import { PersonDetail } from '@/types/dashboard';
 import { LeaderboardEntry } from '@/lib/processData';
 import { ProjectMetrics } from '@/types/dashboard';
-import { CATEGORY_LIST } from '@/config/dashboardConfig';
+import { CATEGORY_LIST, COLORS } from '@/config/dashboardConfig';
 
 const ALL_CATEGORIES = [...CATEGORY_LIST, 'Sonstige'] as const;
 
@@ -20,11 +20,8 @@ interface Props {
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
-    'Projektmanagement':       '#FF8042',
-    'Requirements Engineering': '#8884D8',
-    'Implementierung':          '#0088FE',
-    'Architektur & Design':     '#00C49F',
-    'Sonstige':                 '#a1a1aa',
+    ...COLORS.CATEGORY,
+    'Sonstige': '#a1a1aa',
 };
 
 export default function PersonDetailModal({ person, onClose, sprintData }: Props) {

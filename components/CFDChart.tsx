@@ -5,6 +5,7 @@ import {
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts';
 import { CFDDataPoint } from '@/types/dashboard';
+import { COLORS } from '@/config/dashboardConfig';
 import CollapsibleCard from './CollapsibleCard';
 
 interface Props {
@@ -73,8 +74,8 @@ export default function CFDChart({ data }: Props) {
                             cursor={false}
                         />
                         <Legend wrapperStyle={{ fontSize: 12 }} />
-                        <Area type="monotone" dataKey="opened" name="Offen (kumuliert)" stackId="1" stroke="#0088FE" fill="#0088FE" fillOpacity={0.35} />
-                        <Area type="monotone" dataKey="closed" name="Geschlossen (kumuliert)" stackId="2" stroke="#00C49F" fill="#00C49F" fillOpacity={0.35} />
+                        <Area type="monotone" dataKey="opened" name="Offen (kumuliert)" stackId="1" stroke={COLORS.PRIMARY[0]} fill={COLORS.PRIMARY[0]} fillOpacity={0.35} />
+                        <Area type="monotone" dataKey="closed" name="Geschlossen (kumuliert)" stackId="2" stroke={COLORS.PRIMARY[1]} fill={COLORS.PRIMARY[1]} fillOpacity={0.35} />
                     </AreaChart>
                 </ResponsiveContainer>
             )}
