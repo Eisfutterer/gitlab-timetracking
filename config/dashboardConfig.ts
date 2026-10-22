@@ -70,10 +70,10 @@ export const COLORS = {
     ],
     HEATMAP: ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39'],
     CATEGORY: {
-        [CATEGORIES.PROJEKTMANAGEMENT]:      '#FF8042', // Orange
-        [CATEGORIES.REQUIREMENTS_ENGINEERING]: '#8884D8', // Lila
-        [CATEGORIES.IMPLEMENTIERUNG]:        '#0088FE', // Blau
-        [CATEGORIES.ARCHITEKTUR_DESIGN]:     '#00C49F', // Türkis
+        [CATEGORIES.PROJEKTMANAGEMENT]:      '#ed9121',
+        [CATEGORIES.REQUIREMENTS_ENGINEERING]: '#009966',
+        [CATEGORIES.IMPLEMENTIERUNG]:        '#6699cc',
+        [CATEGORIES.ARCHITEKTUR_DESIGN]:     '#9400d3',
     }
 } as const;
 
