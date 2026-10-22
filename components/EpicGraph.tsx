@@ -13,8 +13,21 @@ function getIssueColor(issue: EpicIssue): string {
     return label ? (COLORS.CATEGORY[label.title as keyof typeof COLORS.CATEGORY] ?? '#94a3b8') : '#94a3b8';
 }
 
-// Epic depth colors pulled from central PRIMARY palette
-function depthColor(d: number) { return COLORS.PRIMARY[d % COLORS.PRIMARY.length]; }
+// Derive the dominant category color of an epic from its issues (recursive)
+function getEpicColor(epic: Epic): string {
+    const counts: Record<string, number> = {};
+    function tally(e: Epic) {
+        e.issues.nodes.forEach(issue => {
+            const label = issue.labels.nodes.find(l => Object.values(CATEGORIES).includes(l.title as never));
+            if (label) counts[label.title] = (counts[label.title] ?? 0) + 1;
+        });
+        e.children.nodes.forEach(tally);
+    }
+    tally(epic);
+    const dominant = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+    if (!dominant) return '#94a3b8';
+    return COLORS.CATEGORY[dominant[0] as keyof typeof COLORS.CATEGORY] ?? '#94a3b8';
+}
 
 // ── Card view — vertikale Linienbaumstruktur (erste Iteration) ────────────────
 
@@ -67,7 +80,7 @@ function CardEpicNode({ epic, depth = 0, isLast = false }: { epic: Epic; depth?:
     const totalIssues = epic.issues.nodes.length;
     const closedIssues = epic.issues.nodes.filter(i => i.state === 'closed').length;
     const isClosed = epic.state === 'closed';
-    const accent = depthColor(depth);
+    const accent = getEpicColor(epic);
     const H = 40;
 
     return (
@@ -187,7 +200,7 @@ function epicToTreeNode(epic: Epic, depth: number): TreeNode {
         id: epic.id,
         label,
         title: epic.title,
-        color: depthColor(depth),
+        color: getEpicColor(epic),
         depth,
         isEpic: true,
         isClosed: epic.state === 'closed',
@@ -272,7 +285,7 @@ function SvgTree({ roots }: { roots: TreeNode[] }) {
     // virtual root for multiple epics
     const vRoot: TreeNode = {
         id: '__vroot__', label: 'Projekt', title: 'Projekt',
-        color: depthColor(0), depth: -1, isEpic: true, isClosed: false, children: roots,
+        color: '#94a3b8', depth: -1, isEpic: true, isClosed: false, children: roots,
     };
     const effectiveExp = new Set(expandedIds);
     effectiveExp.add('__vroot__');
