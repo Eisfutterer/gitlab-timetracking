@@ -54,7 +54,7 @@ function CardIssueRow({ issue, isLast }: { issue: EpicIssue; isLast: boolean }) 
             {/* issue pill */}
             <div className="flex-1 flex items-center py-1 min-w-0">
                 <a
-                    href={`${GITLAB_CONFIG.ISSUE_BASE_URL}/${issue.iid}`}
+                    href={`${issue.webUrl}`}
                     target="_blank"
                     rel="noreferrer"
                     className="flex items-center gap-2 w-full px-3 py-1.5 rounded-lg bg-background border border-border hover:bg-accent/50 transition-colors text-sm min-w-0"
@@ -192,7 +192,7 @@ function epicToTreeNode(epic: Epic, depth: number): TreeNode {
         depth: depth + 1,
         isEpic: false,
         isClosed: issue.state === 'closed',
-        url: `${GITLAB_CONFIG.ISSUE_BASE_URL}/${issue.iid}`,
+        url: issue.webUrl,
         children: [],
     }));
 

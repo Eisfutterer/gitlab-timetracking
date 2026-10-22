@@ -208,7 +208,7 @@ const IssueTimeAnalysis: React.FC<IssueTimeAnalysisProps> = ({ issues }) => {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <a
-                                            href={`${GITLAB_CONFIG.ISSUE_BASE_URL}/${issue.iid}`}
+                                            href={issue.webUrl}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="truncate text-sm font-medium text-primary hover:underline"

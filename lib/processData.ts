@@ -91,7 +91,7 @@ function parseDuration(value: number, unit: string): number {
 
 export function parseSpendNotes(
     notes: Array<{ body: string; createdAt: string; author: { username: string; name: string } }>,
-    issue: { title: string; iid: string; labels: { nodes: Array<{ title: string }> }; timeEstimate: number; totalTimeSpent: number } | null
+    issue: { title: string; iid: string; webUrl?: string; labels: { nodes: Array<{ title: string }> }; timeEstimate: number; totalTimeSpent: number } | null
 ): Timelog[] {
     const timelogs: Timelog[] = [];
     for (const note of notes) {
@@ -102,7 +102,7 @@ export function parseSpendNotes(
             if (seconds > 0) {
                 timelogs.push({
                     user: { name: note.author.name },
-                    issue,
+                    issue: issue ? { ...issue, webUrl: issue.webUrl ?? '' } : null,
                     spentAt: note.createdAt,
                     timeSpent: seconds,
                 });

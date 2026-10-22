@@ -4,6 +4,7 @@ export interface Issue {
     totalTimeSpent: number;
     category: string;
     iid: string;
+    webUrl: string;
     state: 'opened' | 'closed';
     createdAt: string;
     labels: {
@@ -14,6 +15,7 @@ export interface Issue {
 export interface EpicIssue {
     title: string;
     iid: string;
+    webUrl: string;
     state: 'opened' | 'closed';
     labels: { nodes: Array<{title: string}> };
     timeEstimate: number;
@@ -36,6 +38,7 @@ export interface Timelog {
     issue: {
         title: string;
         iid: string;
+        webUrl: string;
         labels: { nodes: Array<{title: string}> };
         timeEstimate: number;
         totalTimeSpent: number;

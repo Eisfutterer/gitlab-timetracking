@@ -44,7 +44,7 @@ async function fetchIssuesForGroup(groupPath: string): Promise<Issue[]> {
                 group(fullPath: "${groupPath}") {
                     issues(first: 100, includeSubgroups: true, after: ${endCursor ? `"${endCursor}"` : 'null'}) {
                         nodes {
-                            title iid state createdAt
+                            title iid state createdAt webUrl
                             labels { nodes { title } }
                             timeEstimate
                             totalTimeSpent
@@ -91,7 +91,7 @@ async function fetchTimelogsForGroup(groupPath: string, startDate: Date, endDate
                         nodes {
                             user { name }
                             issue {
-                                title iid
+                                title iid webUrl
                                 labels { nodes { title } }
                                 timeEstimate
                                 totalTimeSpent
@@ -134,7 +134,7 @@ async function fetchTimelogsForUser(groupPath: string, username: string, startDa
                         nodes {
                             user { name }
                             issue {
-                                title iid
+                                title iid webUrl
                                 labels { nodes { title } }
                                 timeEstimate
                                 totalTimeSpent
@@ -192,7 +192,7 @@ async function fetchEpicsForGroup(groupPath: string): Promise<Epic[]> {
                             parent { id }
                             issues {
                                 nodes {
-                                    title iid state
+                                    title iid state webUrl
                                     labels { nodes { title } }
                                     timeEstimate totalTimeSpent
                                 }
