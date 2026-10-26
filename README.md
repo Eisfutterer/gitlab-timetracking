@@ -1,95 +1,116 @@
-## Time Tracking Dashboard
+# GitLab Time Tracking Dashboard
 
-A small dashboard built for a software engineering project at DHBW.
-It provides analysis for issue-based time tracking, which GitLab itself does not natively offer.
+A dashboard for analyzing GitLab issue-based time tracking data, built for the Software Engineering I course at DHBW Stuttgart (TINF25B6, Group 4 — MergeConflict).
 
-
-> [!NOTE]  
-> This project was developed in a short amount of time, so the code quality is not great.  
-> It’s more a "it just works somehow" kind of project.
-> 
 ## Features
 
-- 📊 **Project Overview**: Sprint metrics, velocity tracking, and category distribution
-- 📈 **Time Series Charts**: Weekly performance trends and team activity comparison
-- 🎯 **Team & Categories**: Pie charts and bar charts for time allocation analysis
-- ⚡ **Productivity Analysis**: Hourly and weekly productivity patterns
-- 👥 **Team Collaboration**: Network visualization of team collaboration
-- 📋 **Issue Analysis**: Issue complexity and time analysis
-- 📅 **Detailed Activity**: GitHub-style activity heatmap
+- **Epics & Issues** — collapsible card view and interactive top-down SVG tree with category-colored nodes
+- **Projektübersicht** — KPI tiles: total hours, sprints, average velocity, category distribution
+- **Aktivität** — GitHub-style contribution heatmap (Mon–Sun)
+- **Zeitliche Entwicklung** — weekly hours per person (line chart) + category trend (stacked area)
+- **Team & Kategorien** — focus card (last/current cycle per person), pie + radar category distribution, per-person radar charts, user–category matrix
+- **Produktivitätsanalyse** — peak hour and peak weekday charts
+- **Kollaboration** — team collaboration graph, average team size per category
+- **Issues** — issue complexity scatter, time estimate vs. actual comparison, cumulative flow diagram (CFD)
+- **Leaderboard** — ranked team members with modal detail view (category breakdown, sprint history)
+- **Gruppen-Vergleich** — cross-group comparison
+- **Zeitraum-Filter** — KW dropdown (with "Alle KWs" + current KW marker) or custom date range; single-KW selection shows ±1 KW context in all charts
+- **Report-Export** — full HTML report with KPIs, leaderboard, category breakdown, KW trend, per-person details, CFD and productivity stats
+- **Dark / Light Mode** — full theme support
+- **Präsentationsmodus** — fullscreen slide-through with keyboard navigation
 
-## Demo
+## Tech Stack
 
-![Dashboard Demo](public/images/dashboard-demo.gif)
+- [Next.js 15](https://nextjs.org/) (App Router, async Server Components)
+- [Recharts](https://recharts.org/) — all charts
+- [Tailwind CSS](https://tailwindcss.com/) + [shadcn/ui](https://ui.shadcn.com/)
+- [date-fns](https://date-fns.org/) — ISO week calculations
+- GitLab GraphQL API
 
+## Setup
 
-## Configuration
+### 1. Clone & install
 
-### 1. GitLab API Configuration
+```bash
+git clone https://github.com/Eisfutterer/gitlab-timetracking.git
+cd gitlab-timetracking
+npm install
+```
 
-Edit `config/dashboardConfig.ts` and update the following settings:
+### 2. Environment variables
 
-```typescript
+Create `.env.local` in the project root:
+
+```env
+GITLAB_TOKEN=your_gitlab_personal_access_token
+```
+
+The token needs at least `read_api` scope.  
+Go to **GitLab → Settings → Access Tokens** to create one.
+
+### 3. Configure the dashboard
+
+Edit `config/dashboardConfig.ts`:
+
+```ts
 export const GITLAB_CONFIG = {
     API_URL: 'https://gitlab.com/api/graphql',
-    GROUP_PATH: 'your-group/your-project', // Replace with your GitLab group/project path
-    TOKEN: 'your-gitlab-token', // Replace with your GitLab personal access token
-    ISSUE_BASE_URL: 'https://gitlab.com/your-group/your-project/-/issues'
-} as const;
-```
+    GROUP_PATH: 'your-group/your-project',
+    GROUP_PATHS: ['your-group/your-project'],
+    PARENT_GROUP_PATH: 'your-group',
+    ISSUE_BASE_URL: 'https://gitlab.com/your-group/your-project/-/issues',
+};
 
-#### Getting Your GitLab Token
-
-1. Go to GitLab → Settings → Access Tokens
-2. Create a new token with `read_api` scope
-3. Copy the token and paste it in the config file
-
-### 2. Team Members Configuration
-
-Update the team members list in `config/dashboardConfig.ts`:
-
-```typescript
 export const TEAM_MEMBERS = [
     "username1",
-    "username2", 
-    "username3",
-    // Add all team member usernames
+    "username2",
 ] as const;
-```
 
-### 3. Date Range Configuration
-
-Update the date range in `app/page.tsx`:
-
-```typescript
-// Set your desired date range
-const startDate = new Date('2024-01-01'); // Start date
-const endDate = new Date('2024-12-31');   // End date
-```
-
-### 4. Categories Configuration
-
-The dashboard uses these default categories. You can modify them in `config/dashboardConfig.ts`:
-
-```typescript
 export const CATEGORIES = {
+    PROJEKTMANAGEMENT:        "Projektmanagement",
     REQUIREMENTS_ENGINEERING: "Requirements Engineering",
-    ENTWURF: "Entwurf", 
-    IMPLEMENTATION_TEST: "Implementation & Test",
-    PROJEKTMANAGEMENT: "Projektmanagement"
+    IMPLEMENTIERUNG:          "Implementierung",
+    ARCHITEKTUR_DESIGN:       "Architektur & Design",
 } as const;
 ```
 
+Category colors are defined in `COLORS.CATEGORY` and apply everywhere automatically.
 
+### 4. Run locally
 
-> [!WARNING]  
-> Make sure your GitLab issues have labels that match these categories.
-> 
+```bash
+npm run dev        # http://localhost:4823
+```
 
-## Contributing
+### 5. Run with Docker
 
-If you want to improve this projects, feel free to create a fork :)
+```bash
+docker compose up --build
+```
 
-## Support
-If you need help with setting up the project (for instance the api key or adding the labels to the issues on gitlab), feel free to contact me on discord:
-[cubepixels](https://discord.com/users/cubepixels)
+The app will be available at `http://localhost:4823`.
+
+## Date range filter
+
+- **KW mode** — select a calendar week from the dropdown; "Alle KWs" shows all data. The current KW is marked with `← aktuell`.
+- **Zeitraum mode** — pick a custom from/to date.
+- When a single KW is selected, all time-series charts automatically show the previous and next KW for context.
+
+## Category labels
+
+Issues need GitLab labels that match (or are mapped to) the configured categories. The label matching uses exact match → alias map → regex fallback. See `CATEGORY_ALIASES` and `CATEGORY_PATTERNS` in `dashboardConfig.ts`.
+
+## Report
+
+Click the download icon in the sidebar to export a self-contained HTML report with:
+- KPI summary
+- Leaderboard with progress bars
+- Category distribution
+- KW-by-KW breakdown
+- Per-person category hours + focus shift
+- Cumulative flow diagram data
+- Peak productivity hour and day
+
+---
+
+© 2026 G4 MergeConflict — DHBW Stuttgart · Software Engineering I · TINF25B6

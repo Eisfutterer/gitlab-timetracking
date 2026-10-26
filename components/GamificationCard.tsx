@@ -1,74 +1,72 @@
 'use client';
 
 import { MemberGamification } from '@/lib/gamification';
+import CollapsibleCard from './CollapsibleCard';
 
 interface Props {
     members: MemberGamification[];
 }
 
-function TierBadge({ tier, color }: { tier: string; color: string }) {
-    return (
-        <span
-            className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold"
-            style={{ backgroundColor: color + '22', color }}
-        >
-            {tier}
-        </span>
-    );
-}
+const TIER_CLASSES: Record<string, string> = {
+    Bronze:   'bg-amber-500/10 text-amber-700 dark:text-amber-400',
+    Silber:   'bg-zinc-400/10  text-zinc-500  dark:text-zinc-300',
+    Gold:     'bg-yellow-400/10 text-yellow-700 dark:text-yellow-400',
+    Legende:  'bg-purple-500/10 text-purple-700 dark:text-purple-400',
+};
+
+const TIER_BAR: Record<string, string> = {
+    Bronze:   'bg-amber-500',
+    Silber:   'bg-zinc-400',
+    Gold:     'bg-yellow-400',
+    Legende:  'bg-purple-500',
+};
 
 export default function GamificationCard({ members }: Props) {
     return (
-        <div className="space-y-4">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Gamification</h2>
-
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {members.map((m, idx) => (
-                    <div
-                        key={m.name}
-                        className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900"
-                    >
-                        {/* Header */}
+        <CollapsibleCard title="Gamification">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {members.map((m) => (
+                    <div key={m.name} className="rounded-xl bg-card ring-1 ring-foreground/10 p-4 flex flex-col gap-3">
+                        {/* Header row */}
                         <div className="flex items-start justify-between gap-2">
-                            <div>
-                                <p className="font-semibold text-gray-900 dark:text-gray-100">{m.name}</p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">
-                                    {m.totalHours.toFixed(1)} h · {m.activeWeeks} Wochen
+                            <div className="min-w-0">
+                                <p className="text-sm font-semibold text-foreground truncate">{m.name}</p>
+                                <p className="text-xs text-muted-foreground">
+                                    {m.totalHours.toFixed(1)} h &middot; {m.activeWeeks} Wochen
                                 </p>
                             </div>
-                            <div className="flex flex-col items-end gap-1">
-                                {idx === 0 && <span className="text-lg">👑</span>}
-                                <TierBadge tier={m.levelInfo.tier} color={m.levelInfo.tierColor} />
-                                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                                    Lvl {m.levelInfo.level}
+                            <div className="flex flex-col items-end gap-1 shrink-0">
+                                <span className={`rounded-md px-2 py-0.5 text-xs font-medium ${TIER_CLASSES[m.levelInfo.tier]}`}>
+                                    {m.levelInfo.tier}
                                 </span>
+                                <span className="text-xs text-muted-foreground">Lvl {m.levelInfo.level}</span>
                             </div>
                         </div>
 
                         {/* XP bar */}
-                        <div className="mt-3">
-                            <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
+                        <div className="space-y-1">
+                            <div className="flex justify-between text-xs text-muted-foreground">
                                 <span>{m.xp} XP</span>
-                                <span>+{m.levelInfo.xpForNextLevel - Math.round(m.levelInfo.xpPercent / 100 * m.levelInfo.xpForNextLevel)} für nächstes Level</span>
+                                <span>+{m.levelInfo.xpForNextLevel - Math.round(m.levelInfo.xpPercent / 100 * m.levelInfo.xpForNextLevel)} XP</span>
                             </div>
-                            <div className="h-2 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
+                            <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
                                 <div
-                                    className="h-full rounded-full transition-all"
-                                    style={{ width: `${m.levelInfo.xpPercent}%`, backgroundColor: m.levelInfo.tierColor }}
+                                    className={`h-full rounded-full transition-all ${TIER_BAR[m.levelInfo.tier]}`}
+                                    style={{ width: `${m.levelInfo.xpPercent}%` }}
                                 />
                             </div>
                         </div>
 
                         {/* Badges */}
                         {m.badges.length > 0 && (
-                            <div className="mt-3 flex flex-wrap gap-1.5">
+                            <div className="flex flex-wrap gap-1">
                                 {m.badges.map(badge => (
                                     <span
                                         key={badge.id}
-                                        className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300"
                                         title={badge.description}
+                                        className="rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground"
                                     >
-                                        {badge.icon} {badge.label}
+                                        {badge.label}
                                     </span>
                                 ))}
                             </div>
@@ -76,6 +74,6 @@ export default function GamificationCard({ members }: Props) {
                     </div>
                 ))}
             </div>
-        </div>
+        </CollapsibleCard>
     );
 }

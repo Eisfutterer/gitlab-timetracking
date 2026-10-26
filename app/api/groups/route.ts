@@ -12,9 +12,10 @@ async function graphql(query: string): Promise<any> {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({ query }),
-        next: { revalidate: 180 },
+        cache: 'no-store',
     });
     const json = await res.json();
+    if (json.errors) throw new Error(json.errors[0]?.message ?? 'GraphQL error');
     return json.data;
 }
 
@@ -32,10 +33,7 @@ export async function GET() {
             {
                 group(fullPath: "${GITLAB_CONFIG.PARENT_GROUP_PATH}") {
                     descendantGroups(first: 30) {
-                        nodes {
-                            name
-                            fullPath
-                        }
+                        nodes { name fullPath }
                     }
                 }
             }
@@ -44,10 +42,9 @@ export async function GET() {
         const groups: Array<{ name: string; fullPath: string }> =
             data?.group?.descendantGroups?.nodes ?? [];
 
-        // Fetch timelog totals for each group in batches of 3
+        const START = '2026-09-01';
+        const END = '2027-09-01';
         const results: GroupSummary[] = [];
-        const START = '2026-09-01T00:00:00Z';
-        const END = '2027-09-01T00:00:00Z';
 
         for (let i = 0; i < groups.length; i += 3) {
             const batch = groups.slice(i, i + 3);
@@ -56,37 +53,22 @@ export async function GET() {
                     const gData = await graphql(`
                         {
                             group(fullPath: "${g.fullPath}") {
-                                timelogs(first: 1, startDate: "${START}", endDate: "${END}") {
-                                    totalCount
-                                }
-                                issues(first: 1) {
-                                    totalCount
-                                }
-                            }
-                        }
-                    `);
-
-                    const timelogs = await graphql(`
-                        {
-                            group(fullPath: "${g.fullPath}") {
                                 timelogs(first: 500, startDate: "${START}", endDate: "${END}") {
                                     nodes { timeSpent }
-                                    pageInfo { hasNextPage }
                                 }
-                                members { totalCount }
                             }
                         }
                     `);
 
-                    const nodes: Array<{ timeSpent: number }> = timelogs?.group?.timelogs?.nodes ?? [];
+                    const nodes: Array<{ timeSpent: number }> = gData?.group?.timelogs?.nodes ?? [];
                     const totalSeconds = nodes.reduce((s: number, n: { timeSpent: number }) => s + n.timeSpent, 0);
 
                     return {
                         name: g.name,
                         fullPath: g.fullPath,
                         totalHours: totalSeconds / 3600,
-                        memberCount: timelogs?.group?.members?.totalCount ?? 0,
-                        issueCount: gData?.group?.issues?.totalCount ?? 0,
+                        memberCount: 0,
+                        issueCount: 0,
                     } satisfies GroupSummary;
                 })
             );
@@ -97,7 +79,6 @@ export async function GET() {
         }
 
         results.sort((a, b) => b.totalHours - a.totalHours);
-
         return NextResponse.json(results);
     } catch (err) {
         return NextResponse.json({ error: String(err) }, { status: 500 });

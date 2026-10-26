@@ -2,6 +2,9 @@
 export const GITLAB_CONFIG = {
     API_URL: 'https://gitlab.com/api/graphql',
     GROUP_PATH: 'dhbw-se/software-engineering-i-tinf25b6/g4-mergeconflict',
+    GROUP_PATHS: [
+        'dhbw-se/software-engineering-i-tinf25b6/g4-mergeconflict',
+    ],
     PARENT_GROUP_PATH: 'dhbw-se/software-engineering-i-tinf25b6',
     ISSUE_BASE_URL: 'https://gitlab.com/dhbw-se/software-engineering-i-tinf25b6/g4-mergeconflict/-/issues'
 } as const;
@@ -17,33 +20,35 @@ export const TEAM_MEMBERS = [
 
 // Category Configuration
 export const CATEGORIES = {
-    FRONTEND: "Frontend",
-    BACKEND: "Backend",
-    TESTING: "Testing",
-    PROJEKTMANAGEMENT: "Projektmanagement",
-    DOKUMENTATION: "Dokumentation",
+    PROJEKTMANAGEMENT:      "Projektmanagement",
     REQUIREMENTS_ENGINEERING: "Requirements Engineering",
+    IMPLEMENTIERUNG:        "Implementierung",
+    ARCHITEKTUR_DESIGN:     "Architektur & Design",
 } as const;
 
 export const CATEGORY_MAP = {
-    [CATEGORIES.FRONTEND]: 0,
-    [CATEGORIES.BACKEND]: 0,
-    [CATEGORIES.TESTING]: 0,
-    [CATEGORIES.PROJEKTMANAGEMENT]: 0,
-    [CATEGORIES.DOKUMENTATION]: 0,
+    [CATEGORIES.PROJEKTMANAGEMENT]:      0,
     [CATEGORIES.REQUIREMENTS_ENGINEERING]: 0,
+    [CATEGORIES.IMPLEMENTIERUNG]:        0,
+    [CATEGORIES.ARCHITEKTUR_DESIGN]:     0,
 } as const;
 
 export const CATEGORY_LIST = Object.values(CATEGORIES);
 
+// Exact-match aliases from other groups' label names → canonical category
+export const CATEGORY_ALIASES: Record<string, string> = {
+    'architecture':       CATEGORIES.ARCHITEKTUR_DESIGN,
+    'implementation':     CATEGORIES.IMPLEMENTIERUNG,
+    'project-management': CATEGORIES.PROJEKTMANAGEMENT,
+    'requirements':       CATEGORIES.REQUIREMENTS_ENGINEERING,
+};
+
 // Regex patterns for label matching (case-insensitive, order matters — first match wins)
 export const CATEGORY_PATTERNS: Array<{ category: string; pattern: RegExp }> = [
-    { category: CATEGORIES.FRONTEND,                pattern: /frontend|ui|css|design/i },
-    { category: CATEGORIES.BACKEND,                 pattern: /backend|api|server|database|db/i },
-    { category: CATEGORIES.TESTING,                 pattern: /test(ing)?|qa|quality/i },
-    { category: CATEGORIES.PROJEKTMANAGEMENT,       pattern: /projekt(management)?|pm|planning|sprint/i },
-    { category: CATEGORIES.DOKUMENTATION,           pattern: /doku(mentation)?|docs?|readme/i },
-    { category: CATEGORIES.REQUIREMENTS_ENGINEERING, pattern: /requirements?|re|anforderung|use.?case/i },
+    { category: CATEGORIES.PROJEKTMANAGEMENT,       pattern: /^project[-_]?management$|projekt(management)?|pm|planning|sprint|management/i },
+    { category: CATEGORIES.REQUIREMENTS_ENGINEERING, pattern: /^requirements?$|re|anforderung|use.?case/i },
+    { category: CATEGORIES.IMPLEMENTIERUNG,         pattern: /^implementation$|implementierung|implement|frontend|backend|coding|feature|api|ui|css|server|database|db|testing|test(ing)?|qa|quality/i },
+    { category: CATEGORIES.ARCHITEKTUR_DESIGN,      pattern: /^architecture$|architektur|design|arc|erd|diagram|doku(mentation)?|docs?|readme/i },
 ];
 
 // Color Schemes
@@ -65,12 +70,10 @@ export const COLORS = {
     ],
     HEATMAP: ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39'],
     CATEGORY: {
-        [CATEGORIES.FRONTEND]: '#0088FE',       // Blau
-        [CATEGORIES.BACKEND]: '#00C49F',         // Türkis
-        [CATEGORIES.TESTING]: '#FFBB28',         // Gelb
-        [CATEGORIES.PROJEKTMANAGEMENT]: '#FF8042', // Orange
-        [CATEGORIES.DOKUMENTATION]: '#8884D8',   // Lila
-        [CATEGORIES.REQUIREMENTS_ENGINEERING]: '#82CA9D', // Grün
+        [CATEGORIES.PROJEKTMANAGEMENT]:      '#ed9121',
+        [CATEGORIES.REQUIREMENTS_ENGINEERING]: '#009966',
+        [CATEGORIES.IMPLEMENTIERUNG]:        '#6699cc',
+        [CATEGORIES.ARCHITEKTUR_DESIGN]:     '#9400d3',
     }
 } as const;
 

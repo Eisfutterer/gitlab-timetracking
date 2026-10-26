@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { GroupSummary } from '@/app/api/groups/route';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button';
+import CollapsibleCard from './CollapsibleCard';
 
 export default function GroupComparison() {
     const [groups, setGroups] = useState<GroupSummary[]>([]);
@@ -35,23 +35,17 @@ export default function GroupComparison() {
     const maxHours = groups[0]?.totalHours ?? 1;
 
     return (
-        <div className="space-y-4">
-            <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Gruppen-Vergleich</h2>
-                <Button variant="outline" size="sm" onClick={fetchGroups} disabled={loading}>
-                    {loading ? 'Lädt…' : 'Aktualisieren'}
-                </Button>
-            </div>
+        <CollapsibleCard title="Gruppen-Vergleich">
 
             {error && (
-                <div className="rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
+                <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
                     Fehler: {error}
                 </div>
             )}
 
-            <div className="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900 overflow-hidden">
+            <div className="rounded-xl bg-card ring-1 ring-foreground/10 overflow-hidden">
                 {loading && !loaded ? (
-                    <div className="divide-y divide-gray-100 dark:divide-gray-800">
+                    <div className="divide-y divide-border">
                         {Array.from({ length: 5 }).map((_, i) => (
                             <div key={i} className="flex items-center gap-4 px-4 py-3">
                                 <Skeleton className="h-4 w-4 shrink-0" />
@@ -61,34 +55,33 @@ export default function GroupComparison() {
                         ))}
                     </div>
                 ) : (
-                    <div className="divide-y divide-gray-100 dark:divide-gray-800">
+                    <div className="divide-y divide-border">
                         {groups.map((g, i) => {
-                            const isOurs = g.fullPath === 'dhbw-se/software-engineering-i-tinf25b6/g4-mergeconflict';
                             return (
                                 <div
                                     key={g.fullPath}
-                                    className={`flex items-center gap-4 px-4 py-3 ${isOurs ? 'bg-blue-50 dark:bg-blue-900/10' : ''}`}
+                                    className="flex items-center gap-4 px-4 py-3"
                                 >
-                                    <span className="w-6 shrink-0 text-right text-sm font-medium text-gray-400">
+                                    <span className="w-6 shrink-0 text-right text-sm font-medium text-muted-foreground">
                                         #{i + 1}
                                     </span>
                                     <div className="min-w-0 flex-1">
-                                        <p className={`text-sm font-medium truncate ${isOurs ? 'text-blue-700 dark:text-blue-300' : 'text-gray-900 dark:text-gray-100'}`}>
-                                            {g.name} {isOurs && '← unsere Gruppe'}
+                                        <p className="text-sm font-medium truncate text-foreground">
+                                            {g.name}
                                         </p>
-                                        <div className="mt-1 h-1.5 w-full rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
+                                        <div className="mt-1 h-1.5 w-full rounded-full bg-muted overflow-hidden">
                                             <div
-                                                className={`h-full rounded-full ${isOurs ? 'bg-blue-500' : 'bg-gray-400 dark:bg-gray-600'}`}
+                                                className="h-full rounded-full bg-muted-foreground/40"
                                                 style={{ width: `${Math.min(100, (g.totalHours / maxHours) * 100)}%` }}
                                             />
                                         </div>
                                     </div>
                                     <div className="shrink-0 text-right">
-                                        <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                        <p className="text-sm font-semibold text-foreground">
                                             {g.totalHours.toFixed(1)} h
                                         </p>
                                         {g.memberCount > 0 && (
-                                            <p className="text-xs text-gray-400">{g.memberCount} Mitglieder</p>
+                                            <p className="text-xs text-muted-foreground">{g.memberCount} Mitglieder</p>
                                         )}
                                     </div>
                                 </div>
@@ -100,6 +93,6 @@ export default function GroupComparison() {
                     </div>
                 )}
             </div>
-        </div>
+        </CollapsibleCard>
     );
 }

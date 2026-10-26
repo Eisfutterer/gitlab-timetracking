@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useTheme } from 'next-themes';
-import { Moon, Sun, BarChart2 } from 'lucide-react';
+import { Moon, Sun, BarChart2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useAutoRefresh } from '@/lib/hooks';
 
 const SECTIONS = [
     { id: 'epics', label: 'Epics & Issues' },
@@ -28,27 +29,36 @@ interface NavbarProps {
 }
 
 export default function Navbar({ activeSection, onSectionChange, extraControls }: NavbarProps) {
-    const { theme, setTheme } = useTheme();
+    const { resolvedTheme, setTheme } = useTheme();
+    const [autoRefresh, setAutoRefresh] = useState(false);
+    const { secondsLeft, manualRefresh } = useAutoRefresh(autoRefresh);
+
+    const mins = Math.floor(secondsLeft / 60);
+    const secs = String(secondsLeft % 60).padStart(2, '0');
 
     return (
-        <nav className="sticky top-0 z-50 border-b border-gray-200 bg-white/95 backdrop-blur dark:border-gray-700 dark:bg-gray-950/95">
+        <nav className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="mx-auto max-w-screen-2xl px-4">
-                <div className="flex h-14 items-center gap-4">
-                    <div className="flex shrink-0 items-center gap-2 text-sm font-semibold text-gray-900 dark:text-gray-100">
-                        <BarChart2 className="h-5 w-5 text-orange-500" />
-                        Time Tracking
+                <div className="flex h-14 items-center gap-6">
+                    {/* Logo */}
+                    <div className="flex shrink-0 items-center gap-2">
+                        <BarChart2 className="h-4 w-4 text-foreground" />
+                        <span className="text-sm font-semibold tracking-tight text-foreground">
+                            Time Tracking
+                        </span>
                     </div>
 
-                    <div className="flex flex-1 items-center gap-1 overflow-x-auto scrollbar-none">
+                    {/* Nav tabs */}
+                    <div className="flex flex-1 items-center gap-0.5 overflow-x-auto scrollbar-none">
                         {SECTIONS.map((s) => (
                             <button
                                 key={s.id}
                                 onClick={() => onSectionChange(s.id)}
                                 className={cn(
-                                    'shrink-0 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+                                    'shrink-0 rounded-md px-2.5 py-1.5 text-sm transition-colors',
                                     activeSection === s.id
-                                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200'
-                                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100'
+                                        ? 'bg-accent text-accent-foreground font-medium'
+                                        : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
                                 )}
                             >
                                 {s.label}
@@ -58,13 +68,47 @@ export default function Navbar({ activeSection, onSectionChange, extraControls }
 
                     {extraControls}
 
+                    {/* Auto-refresh indicator + toggle */}
+                    <div className="flex shrink-0 items-center gap-1">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={manualRefresh}
+                            aria-label="Manuell aktualisieren"
+                            title="Jetzt aktualisieren"
+                        >
+                            <RefreshCw className="h-4 w-4" />
+                        </Button>
+                        <button
+                            onClick={() => setAutoRefresh(v => !v)}
+                            className={cn(
+                                'flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                autoRefresh
+                                    ? 'bg-accent text-accent-foreground'
+                                    : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+                            )}
+                            title={autoRefresh ? 'Auto-Refresh deaktivieren' : 'Auto-Refresh aktivieren'}
+                        >
+                            <span
+                                className={cn(
+                                    'h-1.5 w-1.5 rounded-full',
+                                    autoRefresh ? 'bg-green-500 animate-pulse' : 'bg-muted-foreground'
+                                )}
+                            />
+                            {autoRefresh ? `${mins}:${secs}` : 'Auto'}
+                        </button>
+                    </div>
+
                     <Button
                         variant="ghost"
-                        size="sm"
-                        onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                        size="icon"
+                        onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
                         aria-label="Toggle dark mode"
                     >
-                        {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                        {resolvedTheme === 'dark'
+                            ? <Sun className="h-4 w-4" />
+                            : <Moon className="h-4 w-4" />
+                        }
                     </Button>
                 </div>
             </div>

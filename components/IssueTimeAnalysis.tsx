@@ -1,4 +1,7 @@
+'use client';
+
 import React from 'react';
+import { useTheme } from 'next-themes';
 import {
     BarChart, Bar, CartesianGrid, XAxis, YAxis, Tooltip, Legend,
     ResponsiveContainer, Cell
@@ -13,12 +16,32 @@ import {
     DEVIATION_THRESHOLDS
 } from '@/config/dashboardConfig';
 import { Issue } from '@/types/dashboard';
+import CollapsibleCard from './CollapsibleCard';
 
 interface IssueTimeAnalysisProps {
     issues: Issue[];
 }
 
 const IssueTimeAnalysis: React.FC<IssueTimeAnalysisProps> = ({ issues }) => {
+    const { resolvedTheme } = useTheme();
+    const dark = resolvedTheme === 'dark';
+    const ct = {
+        grid: dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+        axis: dark ? '#71717a' : '#a1a1aa',
+        cursor: { fill: dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)' },
+        tooltip: {
+            contentStyle: {
+                backgroundColor: dark ? '#1c1c1e' : '#ffffff',
+                border:          `1px solid ${dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+                borderRadius:    '0.625rem',
+                color:           dark ? '#fafafa' : '#0a0a0a',
+                fontSize:        '0.8125rem',
+            },
+            labelStyle: { color: dark ? '#fafafa' : '#0a0a0a', fontWeight: 600 },
+            itemStyle:  { color: dark ? '#a1a1aa' : '#71717a' },
+        },
+    };
+
     // Create issue map for efficient lookup
     const issueMap = new Map<string, Issue>();
     issues.forEach(issue => {
@@ -110,98 +133,101 @@ const IssueTimeAnalysis: React.FC<IssueTimeAnalysisProps> = ({ issues }) => {
     });
 
     return (
-        <div className="bg-white dark:bg-gray-900 p-4 rounded-lg shadow">
-            <h2 className="text-xl font-bold mb-6 text-gray-800 dark:text-gray-200">Issue Zeitanalyse</h2>
+        <CollapsibleCard title="Issue Zeitanalyse">
 
             {/* Category Comparison Chart */}
             <div className="mb-8">
-                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{CHART_TITLES.TIME_COMPARISON}</h4>
+                <h4 className="text-sm font-medium text-muted-foreground mb-2">{CHART_TITLES.TIME_COMPARISON}</h4>
                 <ResponsiveContainer width="100%" height={CHART_CONFIG.HEIGHTS.MEDIUM}>
                     <BarChart data={categoryComparison}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="category" />
-                        <YAxis />
-                        <Tooltip 
-                            formatter={(value: number) => [`${value.toFixed(CHART_CONFIG.DECIMAL_PLACES)}h`, TOOLTIP_LABELS.HOURS]}
+                        <CartesianGrid strokeDasharray="3 3" stroke={ct.grid} />
+                        <XAxis dataKey="category" tick={{ fill: ct.axis, fontSize: 12 }} />
+                        <YAxis tick={{ fill: ct.axis, fontSize: 12 }} />
+                        <Tooltip
+                            formatter={(value: number, name: string) => [`${value.toFixed(CHART_CONFIG.DECIMAL_PLACES)}h`, name]}
+                            cursor={ct.cursor}
+                            {...ct.tooltip}
                         />
-                        <Legend />
-                        <Bar dataKey="estimated" fill="#8884d8" name={CHART_LABELS.ESTIMATED_TIME} />
-                        <Bar dataKey="actual" fill="#82ca9d" name={CHART_LABELS.ACTUAL_TIME} />
+                        <Legend wrapperStyle={{ color: ct.axis, fontSize: 12 }} />
+                        <Bar dataKey="estimated" fill="#8884d8" name={CHART_LABELS.ESTIMATED_TIME} radius={[3, 3, 0, 0]} />
+                        <Bar dataKey="actual" fill="#82ca9d" name={CHART_LABELS.ACTUAL_TIME} radius={[3, 3, 0, 0]} />
                     </BarChart>
                 </ResponsiveContainer>
             </div>
 
             {/* Average Deviation per Category */}
             <div className="mb-8">
-                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{CHART_LABELS.AVERAGE_DEVIATION}</h4>
+                <h4 className="text-sm font-medium text-muted-foreground mb-2">{CHART_LABELS.AVERAGE_DEVIATION}</h4>
                 <ResponsiveContainer width="100%" height={CHART_CONFIG.HEIGHTS.SMALL}>
                     <BarChart data={averageDeviationPerCategory}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="category" />
-                        <YAxis />
-                        <Tooltip 
+                        <CartesianGrid strokeDasharray="3 3" stroke={ct.grid} />
+                        <XAxis dataKey="category" tick={{ fill: ct.axis, fontSize: 12 }} />
+                        <YAxis tick={{ fill: ct.axis, fontSize: 12 }} />
+                        <Tooltip
                             formatter={(value: number) => [`${value.toFixed(CHART_CONFIG.DECIMAL_PLACES)}%`, TOOLTIP_LABELS.DEVIATION]}
+                            cursor={ct.cursor}
+                            {...ct.tooltip}
                         />
-                        <Bar dataKey="averageDeviation" fill="#ffc658" name="Durchschnittliche Abweichung (%)" />
+                        <Bar dataKey="averageDeviation" fill="#ffc658" name="Ø Abweichung (%)" radius={[3, 3, 0, 0]} />
                     </BarChart>
                 </ResponsiveContainer>
             </div>
 
             {/* Issues Table */}
             <div>
-                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Issue Details</h4>
+                <h4 className="text-sm font-medium text-muted-foreground mb-2">Issue Details</h4>
                 <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                        <thead className="bg-gray-50 dark:bg-gray-800">
+                    <table className="min-w-full divide-y divide-border">
+                        <thead className="bg-muted/50">
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                                     #
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                                     Issue
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                                     Kategorie
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                                     Geschätzt (h)
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                                     Tatsächlich (h)
                                 </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                                     Abweichung
                                 </th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                        <tbody className="bg-card divide-y divide-border">
                             {sortedIssues.map((issue, index) => (
-                                <tr key={index} className={`${index % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-50 dark:bg-gray-800'} ${issue.totalTimeSpent === 0 ? 'line-through text-gray-400' : ''}`}>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                                <tr key={index} className={`${index % 2 === 0 ? 'bg-card' : 'bg-muted/50'} ${issue.totalTimeSpent === 0 ? 'line-through text-muted-foreground' : ''}`}>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                                         {index + 1}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <a
-                                            href={`${GITLAB_CONFIG.ISSUE_BASE_URL}/${issue.iid}`}
+                                            href={issue.webUrl}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-200"
+                                            className="truncate text-sm font-medium text-primary hover:underline"
                                         >
                                             {issue.title}
                                         </a>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                                         {issue.mainCategory}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                                         {issue.timeEstimate.toFixed(CHART_CONFIG.DECIMAL_PLACES)}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                                         {issue.totalTimeSpent.toFixed(CHART_CONFIG.DECIMAL_PLACES)}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                            issue.timeEstimate === 0 ? 'bg-gray-100 text-gray-800' :
+                                            issue.timeEstimate === 0 ? 'bg-muted text-muted-foreground' :
                                             Math.abs(issue.difference) <= DEVIATION_THRESHOLDS.EXCELLENT ? 'bg-green-100 text-green-800' :
                                             Math.abs(issue.difference) <= DEVIATION_THRESHOLDS.GOOD ? 'bg-yellow-100 text-yellow-800' :
                                             'bg-red-100 text-red-800'
@@ -217,7 +243,7 @@ const IssueTimeAnalysis: React.FC<IssueTimeAnalysisProps> = ({ issues }) => {
                     </table>
                 </div>
             </div>
-        </div>
+        </CollapsibleCard>
     );
 };
 

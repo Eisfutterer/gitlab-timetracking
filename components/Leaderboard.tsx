@@ -1,47 +1,80 @@
 'use client';
 
+import { useState } from 'react';
 import { LeaderboardEntry } from '@/lib/processData';
-
-const MEDALS = ['🥇', '🥈', '🥉'];
+import { PersonDetail, ProjectMetrics } from '@/types/dashboard';
+import CollapsibleCard from './CollapsibleCard';
+import PersonDetailModal from './PersonDetailModal';
 
 interface Props {
     leaderboard: LeaderboardEntry[];
+    personDetails: PersonDetail[];
+    projectMetrics: ProjectMetrics;
 }
 
-export default function Leaderboard({ leaderboard }: Props) {
-    return (
-        <div className="space-y-4">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Leaderboard</h2>
+const RANK_STYLES = [
+    'text-amber-500 font-bold',
+    'text-zinc-400 font-bold',
+    'text-amber-700 font-bold',
+];
 
-            <div className="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900 overflow-hidden">
-                <div className="divide-y divide-gray-100 dark:divide-gray-800">
-                    {leaderboard.map(entry => (
-                        <div key={entry.name} className="flex items-center gap-4 px-4 py-3">
-                            <span className="w-8 shrink-0 text-center text-lg">
-                                {entry.rank <= 3 ? MEDALS[entry.rank - 1] : `#${entry.rank}`}
-                            </span>
-                            <div className="flex-1 min-w-0">
-                                <p className="font-medium text-gray-900 dark:text-gray-100">{entry.name}</p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">{entry.issueCount} Issues</p>
-                            </div>
-                            <div className="text-right">
-                                <p className="font-semibold text-gray-900 dark:text-gray-100">
-                                    {entry.hours.toFixed(1)} h
-                                </p>
-                                <div className="mt-1 h-1.5 w-24 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
-                                    <div
-                                        className="h-full rounded-full bg-blue-500"
-                                        style={{ width: `${Math.min(100, (entry.hours / (leaderboard[0]?.hours || 1)) * 100)}%` }}
-                                    />
+export default function Leaderboard({ leaderboard, personDetails, projectMetrics }: Props) {
+    const max = leaderboard[0]?.hours || 1;
+    const [selected, setSelected] = useState<string | null>(null);
+
+    const selectedEntry = leaderboard.find(e => e.name === selected) ?? null;
+    const selectedDetail = personDetails.find(d => d.name === selected) ?? null;
+    const modalPerson = selectedEntry && selectedDetail
+        ? { ...selectedDetail, ...selectedEntry }
+        : null;
+
+    return (
+        <>
+            <CollapsibleCard title="Leaderboard">
+                <div className="divide-y divide-border -mx-6 -mb-6">
+                    {leaderboard.length === 0 ? (
+                        <p className="px-4 py-8 text-center text-sm text-muted-foreground">
+                            Noch keine Zeitbuchungen
+                        </p>
+                    ) : (
+                        leaderboard.map((entry, i) => (
+                            <button
+                                key={entry.name}
+                                onClick={() => setSelected(entry.name)}
+                                className="w-full flex items-center gap-4 px-4 py-3 text-left hover:bg-accent/50 transition-colors"
+                            >
+                                <span className={`w-7 shrink-0 text-sm tabular-nums ${RANK_STYLES[i] ?? 'text-muted-foreground'}`}>
+                                    {i < 3 ? `#${entry.rank}` : `${entry.rank}`}
+                                </span>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-medium text-foreground truncate">{entry.name}</p>
+                                    <p className="text-xs text-muted-foreground">{entry.issueCount} Issues</p>
                                 </div>
-                            </div>
-                        </div>
-                    ))}
-                    {leaderboard.length === 0 && (
-                        <p className="px-4 py-6 text-center text-sm text-gray-400">Noch keine Zeitbuchungen</p>
+                                <div className="flex items-center gap-3 shrink-0">
+                                    <div className="hidden sm:block w-28 h-1 rounded-full bg-muted overflow-hidden">
+                                        <div
+                                            className="h-full rounded-full bg-foreground/40 transition-all"
+                                            style={{ width: `${Math.min(100, (entry.hours / max) * 100)}%` }}
+                                        />
+                                    </div>
+                                    <span className="text-sm font-semibold tabular-nums text-foreground w-16 text-right">
+                                        {entry.hours.toFixed(1)} h
+                                    </span>
+                                    <span className="hidden sm:block text-xs text-muted-foreground tabular-nums w-10 text-right">
+                                        {entry.percentage.toFixed(0)}%
+                                    </span>
+                                </div>
+                            </button>
+                        ))
                     )}
                 </div>
-            </div>
-        </div>
+            </CollapsibleCard>
+
+            <PersonDetailModal
+                person={modalPerson}
+                onClose={() => setSelected(null)}
+                sprintData={projectMetrics.sprintData}
+            />
+        </>
     );
 }
