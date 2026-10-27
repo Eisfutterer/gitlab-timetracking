@@ -6,14 +6,14 @@ import {
     BarChart, Bar, CartesianGrid, XAxis, YAxis, Tooltip, Legend,
     ResponsiveContainer, Cell
 } from 'recharts';
-import { 
-    CHART_CONFIG, 
-    CHART_TITLES, 
-    TOOLTIP_LABELS, 
-    CHART_LABELS, 
-    GITLAB_CONFIG,
+import {
+    CHART_CONFIG,
+    CHART_TITLES,
+    TOOLTIP_LABELS,
+    CHART_LABELS,
     CATEGORIES,
-    DEVIATION_THRESHOLDS
+    DEVIATION_THRESHOLDS,
+    resolveCategoryLabel,
 } from '@/config/dashboardConfig';
 import { Issue } from '@/types/dashboard';
 import CollapsibleCard from './CollapsibleCard';
@@ -50,21 +50,18 @@ const IssueTimeAnalysis: React.FC<IssueTimeAnalysisProps> = ({ issues }) => {
 
     // Filter issues that have a main category and either estimated or booked time
     const filteredIssues = issues.filter(issue => {
-        const hasMainCategory = issue.labels && issue.labels.nodes && 
-            issue.labels.nodes.some(label => 
-                (Object.values(CATEGORIES) as string[]).includes(label.title)
-            );
+        const hasMainCategory = issue.labels?.nodes?.some(l => resolveCategoryLabel(l.title) !== null);
         const hasTimeData = (issue.timeEstimate || 0) > 0 || (issue.totalTimeSpent || 0) > 0;
         return hasMainCategory && hasTimeData;
     });
 
-    // Get main category for each issue
+    // Get main category for each issue (returns canonical name)
     const getMainCategory = (issue: Issue): string => {
-        if (!issue.labels || !issue.labels.nodes) return '';
-        const mainCategory = issue.labels.nodes.find(label => 
-            (Object.values(CATEGORIES) as string[]).includes(label.title)
-        );
-        return mainCategory ? mainCategory.title : '';
+        for (const l of (issue.labels?.nodes ?? [])) {
+            const cat = resolveCategoryLabel(l.title);
+            if (cat) return cat;
+        }
+        return '';
     };
 
     // Calculate deviation for each issue
@@ -173,76 +170,6 @@ const IssueTimeAnalysis: React.FC<IssueTimeAnalysisProps> = ({ issues }) => {
                 </ResponsiveContainer>
             </div>
 
-            {/* Issues Table */}
-            <div>
-                <h4 className="text-sm font-medium text-muted-foreground mb-2">Issue Details</h4>
-                <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-border">
-                        <thead className="bg-muted/50">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                                    #
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                                    Issue
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                                    Kategorie
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                                    Geschätzt (h)
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                                    Tatsächlich (h)
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                                    Abweichung
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-card divide-y divide-border">
-                            {sortedIssues.map((issue, index) => (
-                                <tr key={index} className={`${index % 2 === 0 ? 'bg-card' : 'bg-muted/50'} ${issue.totalTimeSpent === 0 ? 'line-through text-muted-foreground' : ''}`}>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-                                        {index + 1}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <a
-                                            href={issue.webUrl}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="truncate text-sm font-medium text-primary hover:underline"
-                                        >
-                                            {issue.title}
-                                        </a>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-                                        {issue.mainCategory}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-                                        {issue.timeEstimate.toFixed(CHART_CONFIG.DECIMAL_PLACES)}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-                                        {issue.totalTimeSpent.toFixed(CHART_CONFIG.DECIMAL_PLACES)}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                            issue.timeEstimate === 0 ? 'bg-muted text-muted-foreground' :
-                                            Math.abs(issue.difference) <= DEVIATION_THRESHOLDS.EXCELLENT ? 'bg-green-100 text-green-800' :
-                                            Math.abs(issue.difference) <= DEVIATION_THRESHOLDS.GOOD ? 'bg-yellow-100 text-yellow-800' :
-                                            'bg-red-100 text-red-800'
-                                        } ${issue.totalTimeSpent === 0 ? 'opacity-50' : ''}`}>
-                                            {issue.timeEstimate === 0 ?
-                                                (issue.totalTimeSpent > 0 ? '+∞%' : '0%') :
-                                                `${issue.difference > 0 ? '+' : ''}${issue.difference.toFixed(CHART_CONFIG.DECIMAL_PLACES)}%`}
-                                        </span>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
         </CollapsibleCard>
     );
 };

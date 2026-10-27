@@ -115,21 +115,31 @@ export function parseSpendNotes(
 
 // Resolve a list of label titles to a known category.
 // Priority: 1) exact match against CATEGORY_LIST  2) alias map  3) regex patterns  4) 'Sonstige'
+// Handles namespaced labels like "category::project-management" by stripping the prefix.
 function resolveCategory(labelTitles: string[]): string {
     if (labelTitles.length === 0) return 'Sonstige';
-    // exact match against canonical names (case-insensitive)
+    const stripped = (l: string) => l.includes('::') ? l.split('::').slice(1).join('::') : l;
+    // exact match against canonical names (case-insensitive), try both original and stripped
     for (const label of labelTitles) {
-        const match = CATEGORY_LIST.find(c => c.toLowerCase() === label.toLowerCase());
-        if (match) return match;
+        for (const t of [label, stripped(label)]) {
+            const match = CATEGORY_LIST.find(c => c.toLowerCase() === t.toLowerCase());
+            if (match) return match;
+        }
     }
     // alias map (e.g. "architecture" → "Architektur & Design")
     for (const label of labelTitles) {
-        const alias = CATEGORY_ALIASES[label.toLowerCase()];
+        const alias = CATEGORY_ALIASES[stripped(label).toLowerCase()] ?? CATEGORY_ALIASES[label.toLowerCase()];
         if (alias) return alias;
     }
     // regex fallback
-    const found = CATEGORY_PATTERNS.find(p => labelTitles.some(l => p.pattern.test(l)));
+    const found = CATEGORY_PATTERNS.find(p => labelTitles.some(l => p.pattern.test(stripped(l)) || p.pattern.test(l)));
     return found?.category ?? 'Sonstige';
+}
+
+// Exported single-label variant for use in client components
+export function resolveSingleLabel(labelTitle: string): string | null {
+    const result = resolveCategory([labelTitle]);
+    return result === 'Sonstige' ? null : result;
 }
 
 function processCFD(issues: Issue[], selectedFrom?: Date): CFDDataPoint[] {
@@ -309,12 +319,17 @@ export function processChartData(
     // contextTimelogs: ±1 week around selected KW, for time-series charts only.
     const seriesLogs = contextTimelogs ?? timelogs;
     function matchCategory(labelTitle: string): string | null {
+        const stripped = labelTitle.includes('::') ? labelTitle.split('::').slice(1).join('::') : labelTitle;
+        // alias map first
+        const alias = CATEGORY_ALIASES[stripped.toLowerCase()] ?? CATEGORY_ALIASES[labelTitle.toLowerCase()];
+        if (alias) return alias;
+        // exact canonical match
+        const exact = CATEGORY_LIST.find(c => c.toLowerCase() === stripped.toLowerCase() || c.toLowerCase() === labelTitle.toLowerCase());
+        if (exact) return exact;
+        // regex patterns
         for (const { category, pattern } of CATEGORY_PATTERNS) {
-            if (pattern.test(labelTitle)) return category;
+            if (pattern.test(stripped) || pattern.test(labelTitle)) return category;
         }
-        // Fallback: exact match
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        if ((CATEGORY_MAP as any)[labelTitle] !== undefined) return labelTitle;
         return null;
     }
 
@@ -474,12 +489,12 @@ export function processChartData(
 
             sprintLogs.forEach(log => {
                 if (log.issue && log.issue.labels && log.issue.labels.nodes) {
-                    log.issue.labels.nodes.forEach(label => {
-                        if (sprintCategoryHours[label.title] !== undefined) {
-                            sprintCategoryHours[label.title] += log.timeSpent / TIME_CONFIG.SECONDS_PER_HOUR;
-                            totalCategoryHours[label.title] += log.timeSpent / TIME_CONFIG.SECONDS_PER_HOUR;
-                        }
-                    });
+                    const labels = log.issue.labels.nodes.map(n => n.title);
+                    const cat = resolveCategory(labels);
+                    if (cat !== 'Sonstige' && sprintCategoryHours[cat] !== undefined) {
+                        sprintCategoryHours[cat] += log.timeSpent / TIME_CONFIG.SECONDS_PER_HOUR;
+                        totalCategoryHours[cat] += log.timeSpent / TIME_CONFIG.SECONDS_PER_HOUR;
+                    }
                 }
             });
 
@@ -590,9 +605,10 @@ export function processChartData(
         const issue = timelogs.find(log => log.issue?.iid === issueId)?.issue;
         if (issue?.labels?.nodes) {
             issue.labels.nodes.forEach(label => {
-                if (categoryIssueTime[label.title]) {
-                    categoryIssueTime[label.title].total += time;
-                    categoryIssueTime[label.title].count += 1;
+                const cat = matchCategory(label.title);
+                if (cat && categoryIssueTime[cat]) {
+                    categoryIssueTime[cat].total += time;
+                    categoryIssueTime[cat].count += 1;
                 }
             });
         }

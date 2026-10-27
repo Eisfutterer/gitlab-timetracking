@@ -2,15 +2,19 @@
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Epic, EpicIssue } from '../types/dashboard';
-import { GITLAB_CONFIG, CATEGORIES, COLORS } from '../config/dashboardConfig';
+import { COLORS, resolveCategoryLabel } from '../config/dashboardConfig';
 import CollapsibleCard from './CollapsibleCard';
-import { List, GitBranch } from 'lucide-react';
+import { List, GitBranch, GanttChart } from 'lucide-react';
+import GanttView from './GanttView';
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
 function getIssueColor(issue: EpicIssue): string {
-    const label = issue.labels.nodes.find(l => Object.values(CATEGORIES).includes(l.title as never));
-    return label ? (COLORS.CATEGORY[label.title as keyof typeof COLORS.CATEGORY] ?? '#94a3b8') : '#94a3b8';
+    for (const l of issue.labels.nodes) {
+        const cat = resolveCategoryLabel(l.title);
+        if (cat) return COLORS.CATEGORY[cat as keyof typeof COLORS.CATEGORY] ?? '#94a3b8';
+    }
+    return '#94a3b8';
 }
 
 // Derive the dominant category color of an epic from its issues (recursive)
@@ -18,8 +22,10 @@ function getEpicColor(epic: Epic): string {
     const counts: Record<string, number> = {};
     function tally(e: Epic) {
         e.issues.nodes.forEach(issue => {
-            const label = issue.labels.nodes.find(l => Object.values(CATEGORIES).includes(l.title as never));
-            if (label) counts[label.title] = (counts[label.title] ?? 0) + 1;
+            for (const l of issue.labels.nodes) {
+                const cat = resolveCategoryLabel(l.title);
+                if (cat) { counts[cat] = (counts[cat] ?? 0) + 1; break; }
+            }
         });
         e.children.nodes.forEach(tally);
     }
@@ -489,34 +495,78 @@ function SvgTree({ roots }: { roots: TreeNode[] }) {
 // ── Root ──────────────────────────────────────────────────────────────────────
 
 export default function EpicGraph({ epics }: { epics: Epic[] }) {
-    const [view, setView] = useState<'card' | 'tree'>('card');
-    const treeRoots = epics.map(e => epicToTreeNode(e, 0));
+    const [view, setView] = useState<'card' | 'tree' | 'gantt'>('card');
+    const [showClosed, setShowClosed] = useState(false);
+
+    // Filter closed issues out of epics recursively when showClosed is false
+    function filterEpic(epic: Epic): Epic {
+        return {
+            ...epic,
+            issues: {
+                nodes: showClosed
+                    ? epic.issues.nodes
+                    : epic.issues.nodes.filter(i => i.state !== 'closed'),
+            },
+            children: {
+                nodes: epic.children.nodes.map(filterEpic),
+            },
+        };
+    }
+
+    const visibleEpics = epics.map(filterEpic);
+    const treeRoots = visibleEpics.map(e => epicToTreeNode(e, 0));
+
+    const totalIssues = epics.flatMap(function countAll(e: Epic): EpicIssue[] {
+        return [...e.issues.nodes, ...e.children.nodes.flatMap(countAll)];
+    }).length;
+    const closedIssues = epics.flatMap(function countAll(e: Epic): EpicIssue[] {
+        return [...e.issues.nodes, ...e.children.nodes.flatMap(countAll)];
+    }).filter(i => i.state === 'closed').length;
 
     return (
         <CollapsibleCard
             title="Epics & Issues"
             extra={
-                <div className="flex items-center gap-0.5 rounded-lg border border-border p-0.5 bg-muted/40">
-                    <button onClick={() => setView('card')} className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${view === 'card' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
-                        <List className="w-3.5 h-3.5" /> Karten
-                    </button>
-                    <button onClick={() => setView('tree')} className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${view === 'tree' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
-                        <GitBranch className="w-3.5 h-3.5" /> Baum
-                    </button>
+                <div className="flex items-center gap-2">
+                    <label className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer select-none">
+                        <input
+                            type="checkbox"
+                            checked={showClosed}
+                            onChange={e => setShowClosed(e.target.checked)}
+                            className="rounded border-border w-3.5 h-3.5"
+                        />
+                        Geschlossene Issues
+                        {closedIssues > 0 && (
+                            <span className="text-muted-foreground/60">({closedIssues}/{totalIssues})</span>
+                        )}
+                    </label>
+                    <div className="flex items-center gap-0.5 rounded-lg border border-border p-0.5 bg-muted/40">
+                        <button onClick={() => setView('card')} className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${view === 'card' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
+                            <List className="w-3.5 h-3.5" /> Karten
+                        </button>
+                        <button onClick={() => setView('tree')} className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${view === 'tree' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
+                            <GitBranch className="w-3.5 h-3.5" /> Baum
+                        </button>
+                        <button onClick={() => setView('gantt')} className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${view === 'gantt' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
+                            <GanttChart className="w-3.5 h-3.5" /> Gantt
+                        </button>
+                    </div>
                 </div>
             }
         >
-            {epics.length === 0 && <p className="text-sm text-muted-foreground">Keine Epics gefunden.</p>}
+            {visibleEpics.length === 0 && <p className="text-sm text-muted-foreground">Keine Epics gefunden.</p>}
 
             {view === 'card' && (
                 <div className="space-y-2">
-                    {epics.map((epic, i) => (
-                        <CardEpicNode key={epic.id} epic={epic} depth={0} isLast={i === epics.length - 1} />
+                    {visibleEpics.map((epic, i) => (
+                        <CardEpicNode key={epic.id} epic={epic} depth={0} isLast={i === visibleEpics.length - 1} />
                     ))}
                 </div>
             )}
 
-            {view === 'tree' && epics.length > 0 && <SvgTree roots={treeRoots} />}
+            {view === 'tree' && visibleEpics.length > 0 && <SvgTree roots={treeRoots} />}
+
+            {view === 'gantt' && <GanttView epics={visibleEpics} />}
         </CollapsibleCard>
     );
 }

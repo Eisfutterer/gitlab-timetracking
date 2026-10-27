@@ -35,6 +35,25 @@ export const CATEGORY_MAP = {
 
 export const CATEGORY_LIST = Object.values(CATEGORIES);
 
+// Resolves any label title (canonical, alias, or regex) to a canonical CATEGORIES value or null.
+// Use this in components instead of Object.values(CATEGORIES).includes(label.title).
+// Handles namespaced labels like "category::project-management" by stripping the prefix.
+export function resolveCategoryLabel(title: string): string | null {
+    // strip "namespace::" prefix (e.g. "category::project-management" → "project-management")
+    const stripped = title.includes('::') ? title.split('::').slice(1).join('::') : title;
+    // exact canonical match (case-insensitive) — try both original and stripped
+    for (const t of [title, stripped]) {
+        const exact = CATEGORY_LIST.find(c => c.toLowerCase() === t.toLowerCase());
+        if (exact) return exact;
+    }
+    // alias map
+    const alias = CATEGORY_ALIASES[stripped.toLowerCase()] ?? CATEGORY_ALIASES[title.toLowerCase()];
+    if (alias) return alias;
+    // regex fallback
+    const pattern = CATEGORY_PATTERNS.find(p => p.pattern.test(stripped) || p.pattern.test(title));
+    return pattern?.category ?? null;
+}
+
 // Exact-match aliases from other groups' label names → canonical category
 export const CATEGORY_ALIASES: Record<string, string> = {
     'architecture':       CATEGORIES.ARCHITEKTUR_DESIGN,
