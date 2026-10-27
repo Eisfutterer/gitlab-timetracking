@@ -7,6 +7,10 @@ export interface Issue {
     webUrl: string;
     state: 'opened' | 'closed';
     createdAt: string;
+    description: string | null;
+    startDate: string | null;
+    dueDate: string | null;
+    assignees: { nodes: Array<{ name: string; username: string }> };
     labels: {
         nodes: Array<{title: string}>;
     };
@@ -17,7 +21,12 @@ export interface EpicIssue {
     iid: string;
     webUrl: string;
     state: 'opened' | 'closed';
+    createdAt: string;
+    closedAt: string | null;
+    startDate: string | null;
+    dueDate: string | null;
     labels: { nodes: Array<{title: string}> };
+    assignees: { nodes: Array<{ name: string; username: string }> };
     timeEstimate: number;
     totalTimeSpent: number;
 }

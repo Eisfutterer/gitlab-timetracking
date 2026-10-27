@@ -2,6 +2,7 @@
 
 import { UserCategoryRow } from '@/types/dashboard';
 import { cn } from '@/lib/utils';
+import { COLORS, CATEGORIES } from '@/config/dashboardConfig';
 import CollapsibleCard from './CollapsibleCard';
 
 interface Props {
@@ -10,6 +11,11 @@ interface Props {
 }
 
 export default function UserCategoryMatrix({ rows, keys }: Props) {
+    const colTotals = Object.fromEntries(
+        keys.map(k => [k, rows.reduce((sum, r) => sum + ((r[k] as number) || 0), 0)])
+    );
+    const grandTotal = rows.reduce((sum, r) => sum + (r.total as number), 0);
+
     return (
         <CollapsibleCard title="User-Kategorie-Matrix" className="overflow-x-auto">
             {rows.length === 0 ? (
@@ -46,6 +52,24 @@ export default function UserCategoryMatrix({ rows, keys }: Props) {
                             </tr>
                         ))}
                     </tbody>
+                    <tfoot>
+                        <tr className="border-t-2 border-border">
+                            <td className="pt-2 pr-4 font-semibold text-muted-foreground">Gesamt</td>
+                            {keys.map(k => {
+                                const color = COLORS.CATEGORY[k as keyof typeof COLORS.CATEGORY];
+                                return (
+                                    <td key={k} className="pt-2 px-2 text-right tabular-nums font-semibold whitespace-nowrap"
+                                        style={{ color: color ?? undefined }}>
+                                        {colTotals[k] > 0 ? `${colTotals[k].toFixed(1)}h` : '—'}
+                                    </td>
+                                );
+                            })}
+                            <td className="pt-2 px-2 text-right tabular-nums font-bold text-foreground">
+                                {grandTotal.toFixed(1)}h
+                            </td>
+                            <td className="pt-2 pl-2 text-right tabular-nums text-muted-foreground">100%</td>
+                        </tr>
+                    </tfoot>
                 </table>
             )}
         </CollapsibleCard>

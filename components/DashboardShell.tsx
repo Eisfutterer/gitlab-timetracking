@@ -28,8 +28,10 @@ import DateFilterBar from './DateFilterBar';
 import UserCategoryMatrix from './UserCategoryMatrix';
 import CFDChart from './CFDChart';
 import ReportButton from './ReportButton';
+import RiskyIssues from './RiskyIssues';
 import FocusCard from './FocusCard';
 import RadarCategoryChart from './RadarCategoryChart';
+import DashboardSkeleton from './DashboardSkeleton';
 
 interface DashboardShellProps extends ChartData {
     issues: Issue[];
@@ -70,12 +72,6 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
     const [presentationMode, setPresentationMode] = useState(false);
     const [presentationIndex, setPresentationIndex] = useState(0);
     const { manualRefresh } = useAutoRefresh(false);
-
-    const handleSectionChange = (id: string) => {
-        setActiveSection(id);
-        const el = document.getElementById(`section-${id}`);
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    };
 
     // Scrollspy — update activeSection as sections enter the viewport
     useEffect(() => {
@@ -134,6 +130,23 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
         return () => window.removeEventListener('keydown', handler);
     }, [presentationMode, exitPresentation]);
 
+    // mounted: show skeleton on first client render for at least 400ms,
+    // regardless of server cache speed. Must be last hook — no early returns above.
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => {
+        const t = setTimeout(() => setMounted(true), 400);
+        return () => clearTimeout(t);
+    }, []);
+
+    // ── All hooks above this line ─────────────────────────────────────────────
+    if (!mounted) return <DashboardSkeleton />;
+
+    const handleSectionChange = (id: string) => {
+        setActiveSection(id);
+        const el = document.getElementById(`section-${id}`);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
     const sectionContent: Record<string, React.ReactNode> = {
         epics: <EpicGraph epics={epics} />,
         overview: <ProjectOverview projectMetrics={projectMetrics} issues={issues} />,
@@ -153,6 +166,7 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
                 <IssueAnalysis issueComplexityData={issueComplexityData} COLORS={[...COLORS.PRIMARY]} />
                 <IssueTimeAnalysis issues={issues} />
                 <CFDChart data={cfdData} />
+                <RiskyIssues issues={issues} leaderboard={leaderboard} userCategoryMatrix={userCategoryMatrix} />
             </div>
         ),
         leaderboard: <Leaderboard leaderboard={leaderboard} personDetails={personDetails} projectMetrics={projectMetrics} />,
@@ -309,7 +323,7 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
                     'border-t border-border px-6 py-4 text-center text-xs text-muted-foreground transition-all duration-200',
                     collapsed ? 'ml-0' : 'ml-0'
                 )}>
-                    © {new Date().getFullYear()} G4 MergeConflict — DHBW Stuttgart · Software Engineering I · TINF25B6
+                    © {new Date().getFullYear()} G4 MergeConflict — DHBW Stuttgart · DHBW Karlsruhe · Software Engineering I · TINF25B6
                 </footer>
             </main>
         </div>
