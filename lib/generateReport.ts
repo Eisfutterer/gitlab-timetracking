@@ -1,5 +1,81 @@
 import { ChartData, LeaderboardEntry } from './processData';
-import { COLORS } from '@/config/dashboardConfig';
+import { COLORS, resolveCategoryLabel, CATEGORY_LIST } from '@/config/dashboardConfig';
+import { Issue } from '@/types/dashboard';
+
+const DEVIATION_THRESHOLD = 50;
+
+type RiskReason = 'no_description' | 'no_dates' | 'high_deviation' | 'no_estimate' | 'no_label' | 'no_epic';
+
+const REASON_LABELS: Record<RiskReason, string> = {
+    no_label:       'Kein Label',
+    no_epic:        'Kein Epic',
+    no_estimate:    'Keine Schätzung',
+    no_description: 'Keine Beschreibung',
+    no_dates:       'Kein Datum',
+    high_deviation: 'Hohe Abweichung',
+};
+
+const REASON_COLORS: Record<RiskReason, string> = {
+    no_label:       '#ec4899',
+    no_epic:        '#14b8a6',
+    no_estimate:    '#0ea5e9',
+    no_description: '#f59e0b',
+    no_dates:       '#f97316',
+    high_deviation: '#ef4444',
+};
+
+function detectRiskyIssues(issues: Issue[]): Array<{ issue: Issue; reasons: RiskReason[] }> {
+    return issues
+        .filter(i => i.state === 'opened')
+        .map(issue => {
+            const reasons: RiskReason[] = [];
+            const noLabel = !issue.labels.nodes.some(l => resolveCategoryLabel(l.title) !== null);
+            const noEpic  = !issue.epic;
+            const noEst   = (issue.timeEstimate ?? 0) === 0;
+            const noDesc  = !issue.description || issue.description.trim().length < 10;
+            const noDates = !issue.startDate && !issue.dueDate;
+            const est = issue.timeEstimate ?? 0;
+            const spent = issue.totalTimeSpent ?? 0;
+            const deviation = est > 0 ? ((spent - est) / est) * 100 : null;
+            const highDev = deviation !== null && Math.abs(deviation) > DEVIATION_THRESHOLD;
+            if (noLabel) reasons.push('no_label');
+            if (noEpic)  reasons.push('no_epic');
+            if (noEst)   reasons.push('no_estimate');
+            if (noDesc)  reasons.push('no_description');
+            if (noDates) reasons.push('no_dates');
+            if (highDev) reasons.push('high_deviation');
+            return { issue, reasons };
+        })
+        .filter(r => r.reasons.length > 0);
+}
+
+function computeRiskScore(
+    riskyIssues: Array<{ reasons: RiskReason[] }>,
+    totalOpenIssues: number,
+    leaderboard: LeaderboardEntry[],
+    userCategoryMatrix: ChartData['userCategoryMatrix'],
+): { score: number; issueScore: number; personScore: number; categoryScore: number } {
+    const issueScore = totalOpenIssues === 0 ? 0
+        : Math.min(100, Math.round(riskyIssues.length / totalOpenIssues * 100));
+
+    const teamSize = leaderboard.length;
+    const fairShare = teamSize > 0 ? 100 / teamSize : 100;
+    const topShare = Math.max(...leaderboard.map(p => p.percentage), 0);
+    const maxDeviation = 100 - fairShare;
+    const personScore = maxDeviation <= 0 ? 0
+        : Math.min(100, Math.round(Math.max(0, topShare - fairShare) / maxDeviation * 100));
+
+    const categories = CATEGORY_LIST;
+    const soloCats = categories.filter(cat => {
+        const contributors = userCategoryMatrix.filter(r => (r[cat] as number ?? 0) > 0);
+        return contributors.length === 1;
+    });
+    const categoryScore = categories.length === 0 ? 0
+        : Math.round(soloCats.length / categories.length * 100);
+
+    const score = Math.min(100, Math.round(issueScore * 0.4 + personScore * 0.35 + categoryScore * 0.25));
+    return { score, issueScore, personScore, categoryScore };
+}
 
 function esc(s: string | number): string {
     return String(s)
@@ -29,6 +105,7 @@ export function generateReport(data: ChartData, dateRange: { from: string; to: s
     const {
         leaderboard, pieData, projectMetrics,
         personDetails, productivityPatterns, cfdData,
+        issues, userCategoryMatrix,
     } = data;
 
     const totalHours   = leaderboard.reduce((s, e) => s + e.hours, 0);
@@ -130,6 +207,85 @@ export function generateReport(data: ChartData, dateRange: { from: string; to: s
             <td>${esc(d.closed)}</td>
         </tr>`).join('');
 
+    // ── Risikoanalyse ─────────────────────────────────────────────────────────
+    const riskyIssues = detectRiskyIssues(issues);
+    const openIssues  = issues.filter(i => i.state === 'opened');
+    const { score, issueScore, personScore, categoryScore } =
+        computeRiskScore(riskyIssues, openIssues.length, leaderboard, userCategoryMatrix);
+
+    const scoreColor = score >= 70 ? '#ef4444' : score >= 40 ? '#f59e0b' : '#22c55e';
+    const scoreLabel = score >= 70 ? 'Hoch' : score >= 40 ? 'Mittel' : 'Niedrig';
+
+    const riskKpis = [
+        { label: 'Gesamt-Risikoscore', value: `${score}`, sub: scoreLabel, color: scoreColor },
+        { label: 'Issue-Qualität (40%)', value: `${issueScore}`, sub: `${riskyIssues.length} von ${openIssues.length} offen`, color: '#6366f1' },
+        { label: 'Personenkonzentration (35%)', value: `${personScore}`, sub: leaderboard.length > 0 ? `Top: ${Math.max(...leaderboard.map(e => e.percentage), 0).toFixed(1)}%` : '—', color: '#f59e0b' },
+        { label: 'Kategorie-Abdeckung (25%)', value: `${categoryScore}`, sub: 'Solo-Kategorien', color: '#8b5cf6' },
+    ].map(k => `
+        <div class="kpi" style="border-left:3px solid ${k.color}">
+            <div class="kpi-value" style="color:${k.color}">${k.value}</div>
+            <div class="kpi-label">${k.label}</div>
+            <div style="font-size:0.7rem;color:#aaa;margin-top:2px">${k.sub}</div>
+        </div>`).join('');
+
+    // counts per reason
+    const reasonOrder: RiskReason[] = ['no_label','no_epic','no_estimate','no_description','no_dates','high_deviation'];
+    const reasonCounts = reasonOrder.map(r => ({
+        reason: r,
+        count: riskyIssues.filter(x => x.reasons.includes(r)).length,
+    }));
+
+    const reasonBars = reasonCounts.map(({ reason, count }) => {
+        const pct = openIssues.length > 0 ? count / openIssues.length * 100 : 0;
+        return `
+        <tr>
+            <td style="white-space:nowrap">
+                <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${REASON_COLORS[reason]};margin-right:6px;vertical-align:middle"></span>
+                ${esc(REASON_LABELS[reason])}
+            </td>
+            <td style="font-weight:600;color:${count > 0 ? REASON_COLORS[reason] : '#888'}">${count}</td>
+            <td style="width:150px">${bar(pct, REASON_COLORS[reason])}</td>
+            <td style="color:#888">${pct.toFixed(1)} %</td>
+        </tr>`;
+    }).join('');
+
+    // top 10 riskiest issues
+    const topRiskyRows = riskyIssues.slice(0, 10).map(({ issue, reasons }) => {
+        const badges = reasons.map(r =>
+            `<span style="display:inline-block;padding:1px 6px;border-radius:20px;font-size:10px;font-weight:600;background:${REASON_COLORS[r]}22;color:${REASON_COLORS[r]};border:1px solid ${REASON_COLORS[r]}44;margin-right:3px">${REASON_LABELS[r]}</span>`
+        ).join('');
+        const estH   = ((issue.timeEstimate ?? 0) / 3600).toFixed(1);
+        const spentH = ((issue.totalTimeSpent ?? 0) / 3600).toFixed(1);
+        return `
+        <tr>
+            <td style="color:#888">#${esc(issue.iid)}</td>
+            <td style="max-width:220px"><a href="${esc(issue.webUrl)}" style="color:#3b82f6;text-decoration:none">${esc(issue.title)}</a></td>
+            <td>${badges}</td>
+            <td style="color:#888;white-space:nowrap">${estH} h</td>
+            <td style="color:#888;white-space:nowrap">${spentH} h</td>
+            <td style="color:#888">${issue.assignees.nodes.map(a => esc(a.name)).join(', ') || '—'}</td>
+        </tr>`;
+    }).join('');
+
+    // person risks
+    const teamSize  = leaderboard.length;
+    const fairShare = teamSize > 0 ? 100 / teamSize : 100;
+    const personRiskRows = leaderboard
+        .filter(e => e.percentage > fairShare * 1.5)
+        .sort((a, b) => b.percentage - a.percentage)
+        .map(e => {
+            const severity = e.percentage > fairShare * 2.5 ? '#ef4444' : '#f59e0b';
+            const overload = (e.percentage / fairShare).toFixed(1);
+            return `
+        <tr>
+            <td style="font-weight:600;color:${severity}">${esc(e.name)}</td>
+            <td>${e.hours.toFixed(1)} h</td>
+            <td style="font-weight:700;color:${severity}">${e.percentage.toFixed(1)} %</td>
+            <td style="color:#888">${overload}× fairer Anteil</td>
+            <td style="width:120px">${bar(e.percentage, severity)}</td>
+        </tr>`;
+        }).join('');
+
     // ── Last sprint summary ───────────────────────────────────────────────────
     const lastSprintSummary = lastSprint ? `
         <p style="color:#555;font-size:0.875rem">
@@ -223,6 +379,37 @@ ${personRows}
     </div>
   </div>
 </div>
+
+<h2>Risikoanalyse</h2>
+<div class="kpi-grid" style="margin-bottom:1rem">${riskKpis}</div>
+
+<div class="two-col" style="margin-bottom:1rem">
+  <div class="card" style="padding:0;overflow:hidden">
+    <div style="padding:0.75rem 1rem;font-size:0.78rem;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:0.04em;border-bottom:1px solid #f0f0f0">Risikoverteilung nach Typ</div>
+    <table>
+      <thead><tr><th>Risikotyp</th><th>Issues</th><th style="width:160px">Anteil</th><th>%</th></tr></thead>
+      <tbody>${reasonBars}</tbody>
+    </table>
+  </div>
+  ${personRiskRows ? `<div class="card" style="padding:0;overflow:hidden">
+    <div style="padding:0.75rem 1rem;font-size:0.78rem;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:0.04em;border-bottom:1px solid #f0f0f0">Personenrisiken (Schlüsselpersonen)</div>
+    <table>
+      <thead><tr><th>Person</th><th>Stunden</th><th>Anteil</th><th>Konzentration</th><th style="width:120px">Verteilung</th></tr></thead>
+      <tbody>${personRiskRows}</tbody>
+    </table>
+    <p style="padding:0.5rem 1rem;font-size:0.75rem;color:#aaa;border-top:1px solid #f0f0f0">Schwelle: &gt;1.5× fairer Anteil (${fairShare.toFixed(1)}% bei ${teamSize} Personen)</p>
+  </div>` : `<div class="card"><p style="color:#22c55e;font-weight:600">Keine kritischen Personenabhängigkeiten.</p></div>`}
+</div>
+
+${topRiskyRows ? `<div class="card" style="padding:0;overflow:hidden">
+  <div style="padding:0.75rem 1rem;font-size:0.78rem;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:0.04em;border-bottom:1px solid #f0f0f0">Riskanteste Issues (Top ${Math.min(10, riskyIssues.length)} von ${riskyIssues.length})</div>
+  <div style="overflow-x:auto">
+    <table>
+      <thead><tr><th>#</th><th>Titel</th><th>Risiken</th><th>Geschätzt</th><th>Tatsächlich</th><th>Assignee</th></tr></thead>
+      <tbody>${topRiskyRows}</tbody>
+    </table>
+  </div>
+</div>` : '<div class="card"><p style="color:#22c55e;font-weight:600">Keine risikobehafteten Issues gefunden.</p></div>'}
 
 </body>
 </html>`;

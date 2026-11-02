@@ -22,6 +22,7 @@ import { calculateGamification } from '@/lib/gamification';
 import { LabelTimelinePoint, UserCategoryRow, CFDDataPoint, PersonDetail } from '@/types/dashboard';
 
 export interface ChartData {
+    issues: Issue[];
     pieData: { name: string; value: number }[];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     lineData: Record<string, any>[];
@@ -711,5 +712,6 @@ export function processChartData(
         userCategoryKeys,
         cfdData,
         personDetails: processPersonDetails(timelogs, sprintDataForPersonDetails),
+        issues,
     };
 }

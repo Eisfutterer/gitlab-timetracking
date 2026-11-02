@@ -165,7 +165,7 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
         groups: <GroupComparison />,
     };
 
-    const chartData = { pieData, lineData, barData, heatmapData, projectMetrics, averageTeamMembersData, issueComplexityData, collaborationData, productivityPatterns, leaderboard, labelsTimeline, labelsTimelineKeys, userCategoryMatrix, userCategoryKeys, cfdData, personDetails };
+    const chartData = { issues, pieData, lineData, barData, heatmapData, projectMetrics, averageTeamMembersData, issueComplexityData, collaborationData, productivityPatterns, leaderboard, labelsTimeline, labelsTimelineKeys, userCategoryMatrix, userCategoryKeys, cfdData, personDetails };
 
     if (presentationMode) {
         const currentId = SECTIONS[presentationIndex]?.id;
