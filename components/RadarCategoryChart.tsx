@@ -114,8 +114,8 @@ export default function RadarCategoryChart({ userCategoryMatrix, keys, pieData }
                 </div>
 
                 {/* Team Radar */}
-                <div className="flex-1 min-w-0">
-                    <ResponsiveContainer width="100%" height={260}>
+                <div className="flex-1 min-w-0" style={{ height: 260 }}>
+                    <ResponsiveContainer width="100%" height="100%">
                         <RadarChart data={teamAvg} cx="50%" cy="50%" outerRadius="65%">
                             <PolarGrid stroke={ct.grid} />
                             <PolarAngleAxis
@@ -131,6 +131,7 @@ export default function RadarCategoryChart({ userCategoryMatrix, keys, pieData }
                                 {...ct.tooltip}
                                 formatter={(v: number) => [`${v.toFixed(1)} h`, 'Ø Team']}
                                 cursor={false}
+                                wrapperStyle={{ zIndex: 50 }}
                             />
                             <Radar
                                 name="Ø Team"
@@ -156,13 +157,15 @@ export default function RadarCategoryChart({ userCategoryMatrix, keys, pieData }
                     return (
                         <div key={row.name}>
                             <p className="text-xs font-medium mb-1" style={{ color }}>{row.name}</p>
-                            <ResponsiveContainer width="100%" height={120}>
-                                <RadarChart data={personData} cx="50%" cy="50%" outerRadius="65%">
-                                    <PolarGrid stroke={ct.grid} />
-                                    <PolarAngleAxis dataKey="category" tick={{ fill: ct.axis, fontSize: 9 }} />
-                                    <Radar dataKey="value" stroke={color} fill={color} fillOpacity={0.3} />
-                                </RadarChart>
-                            </ResponsiveContainer>
+                            <div style={{ height: 120 }}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <RadarChart data={personData} cx="50%" cy="50%" outerRadius="65%">
+                                        <PolarGrid stroke={ct.grid} />
+                                        <PolarAngleAxis dataKey="category" tick={{ fill: ct.axis, fontSize: 9 }} />
+                                        <Radar dataKey="value" stroke={color} fill={color} fillOpacity={0.3} />
+                                    </RadarChart>
+                                </ResponsiveContainer>
+                            </div>
                         </div>
                     );
                 })}

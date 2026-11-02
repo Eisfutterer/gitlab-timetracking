@@ -75,26 +75,18 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
 
     // Scrollspy — update activeSection as sections enter the viewport
     useEffect(() => {
-        const observers: IntersectionObserver[] = [];
-        const visibleRatios: Record<string, number> = {};
+        const onScroll = () => {
+            let active = SECTIONS[0].id;
+            for (const { id } of SECTIONS) {
+                const el = document.getElementById(`section-${id}`);
+                if (el && el.getBoundingClientRect().top <= 120) active = id;
+            }
+            setActiveSection(active);
+        };
 
-        SECTIONS.forEach(({ id }) => {
-            const el = document.getElementById(`section-${id}`);
-            if (!el) return;
-            const observer = new IntersectionObserver(
-                ([entry]) => {
-                    visibleRatios[id] = entry.intersectionRatio;
-                    // pick the section with the highest visible ratio
-                    const best = Object.entries(visibleRatios).sort((a, b) => b[1] - a[1])[0];
-                    if (best && best[1] > 0) setActiveSection(best[0]);
-                },
-                { threshold: Array.from({ length: 21 }, (_, i) => i / 20), rootMargin: '-10% 0px -10% 0px' }
-            );
-            observer.observe(el);
-            observers.push(observer);
-        });
-
-        return () => observers.forEach(o => o.disconnect());
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+        return () => window.removeEventListener('scroll', onScroll);
     }, []);
 
     // Scroll active nav item into view when scrollspy changes it

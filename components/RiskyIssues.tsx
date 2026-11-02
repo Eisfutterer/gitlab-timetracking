@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useRef } from 'react';
-import { AlertTriangle, CalendarX, FileX, ExternalLink, TrendingUp, Users, ShieldAlert, User, ChevronDown } from 'lucide-react';
+import { AlertTriangle, CalendarX, FileX, ExternalLink, TrendingUp, Users, ShieldAlert, User, ChevronDown, Tag, Clock, GitBranch } from 'lucide-react';
 import { Issue, UserCategoryRow } from '../types/dashboard';
 import { LeaderboardEntry } from '../lib/processData';
 import { COLORS, CATEGORIES, resolveCategoryLabel } from '../config/dashboardConfig';
@@ -13,7 +13,7 @@ interface RiskyIssuesProps {
     userCategoryMatrix?: UserCategoryRow[];
 }
 
-type RiskReason = 'no_description' | 'no_dates' | 'high_deviation';
+type RiskReason = 'no_description' | 'no_dates' | 'high_deviation' | 'no_estimate' | 'no_label' | 'no_epic';
 
 interface RiskyIssue {
     issue: Issue;
@@ -135,29 +135,51 @@ const REASON_META: Record<RiskReason, { label: string; icon: React.ReactNode; co
         icon: <TrendingUp className="w-3 h-3" />,
         color: 'text-violet-500 bg-violet-500/10 border-violet-500/20',
     },
+    no_estimate: {
+        label: 'Keine Zeitschätzung',
+        icon: <Clock className="w-3 h-3" />,
+        color: 'text-sky-500 bg-sky-500/10 border-sky-500/20',
+    },
+    no_label: {
+        label: 'Kein Kategorie-Label',
+        icon: <Tag className="w-3 h-3" />,
+        color: 'text-pink-500 bg-pink-500/10 border-pink-500/20',
+    },
+    no_epic: {
+        label: 'Kein Epic',
+        icon: <GitBranch className="w-3 h-3" />,
+        color: 'text-teal-500 bg-teal-500/10 border-teal-500/20',
+    },
 };
 
 type FilterKey = 'all' | RiskReason;
-type TabKey = 'issues' | 'persons';
+type TabKey = 'all' | RiskReason | 'persons';
 
 export default function RiskyIssues({ issues, leaderboard = [], userCategoryMatrix = [] }: RiskyIssuesProps) {
-    const [filter, setFilter] = useState<FilterKey>('all');
-    const [tab, setTab] = useState<TabKey>('issues');
+    const [tab, setTab] = useState<TabKey>('all');
     const [showFormula, setShowFormula] = useState(false);
 
     // ── compute risky issues ──
     const riskyIssues: RiskyIssue[] = issues
         .filter(i => i.state === 'opened')
         .reduce<RiskyIssue[]>((acc, issue) => {
-            const noDesc = !issue.description || issue.description.trim() === '';
-            const noDates = !issue.startDate || !issue.dueDate;
+            const noDesc    = !issue.description || issue.description.trim() === '';
+            const noDates   = !issue.startDate || !issue.dueDate;
             const deviation = calcDeviation(issue);
-            const highDev = deviation !== null && Math.abs(deviation) > DEVIATION_THRESHOLD;
-            if (!noDesc && !noDates && !highDev) return acc;
+            const highDev   = deviation !== null && Math.abs(deviation) > DEVIATION_THRESHOLD;
+            const noEst     = (issue.timeEstimate ?? 0) === 0;
+            const noLabel   = !issue.labels.nodes.some(l => resolveCategoryLabel(l.title) !== null);
+            const noEpic    = !issue.epic;
+
+            if (!noDesc && !noDates && !highDev && !noEst && !noLabel && !noEpic) return acc;
+
             const reasons: RiskReason[] = [];
-            if (noDesc) reasons.push('no_description');
-            if (noDates) reasons.push('no_dates');
-            if (highDev) reasons.push('high_deviation');
+            if (noLabel)  reasons.push('no_label');
+            if (noEpic)   reasons.push('no_epic');
+            if (noEst)    reasons.push('no_estimate');
+            if (noDesc)   reasons.push('no_description');
+            if (noDates)  reasons.push('no_dates');
+            if (highDev)  reasons.push('high_deviation');
             acc.push({ issue, reasons, categoryColor: getCategoryColor(issue), deviation });
             return acc;
         }, [])
@@ -168,15 +190,18 @@ export default function RiskyIssues({ issues, leaderboard = [], userCategoryMatr
             return db - da;
         });
 
-    const filtered = filter === 'all'
+    const filtered = tab === 'all' || tab === 'persons'
         ? riskyIssues
-        : riskyIssues.filter(r => r.reasons.includes(filter as RiskReason));
+        : riskyIssues.filter(r => r.reasons.includes(tab as RiskReason));
 
     const counts: Record<FilterKey, number> = {
-        all: riskyIssues.length,
-        no_description: riskyIssues.filter(r => r.reasons.includes('no_description')).length,
-        no_dates: riskyIssues.filter(r => r.reasons.includes('no_dates')).length,
-        high_deviation: riskyIssues.filter(r => r.reasons.includes('high_deviation')).length,
+        all:             riskyIssues.length,
+        no_label:        riskyIssues.filter(r => r.reasons.includes('no_label')).length,
+        no_epic:         riskyIssues.filter(r => r.reasons.includes('no_epic')).length,
+        no_estimate:     riskyIssues.filter(r => r.reasons.includes('no_estimate')).length,
+        no_description:  riskyIssues.filter(r => r.reasons.includes('no_description')).length,
+        no_dates:        riskyIssues.filter(r => r.reasons.includes('no_dates')).length,
+        high_deviation:  riskyIssues.filter(r => r.reasons.includes('high_deviation')).length,
     };
 
     // ── compute person risks ──
@@ -224,7 +249,7 @@ export default function RiskyIssues({ issues, leaderboard = [], userCategoryMatr
                                 label: 'Issue-Qualität',
                                 value: issueScore,
                                 weight: '40%',
-                                desc: `${riskyIssues.length} von ${totalOpenIssues} offenen Issues fehlt Beschreibung, Datum oder hat hohe Abweichung`,
+                                desc: `${riskyIssues.length} von ${totalOpenIssues} offenen Issues: kein Label, kein Epic, keine Schätzung, fehlende Beschreibung/Datum oder hohe Abweichung`,
                             },
                             {
                                 label: 'Personenkonzentration',
@@ -274,7 +299,7 @@ export default function RiskyIssues({ issues, leaderboard = [], userCategoryMatr
                             <div>
                                 <span className="font-medium text-foreground">Issue-Qualität</span>
                                 <code className="ml-2 font-mono bg-muted px-1.5 py-0.5 rounded">riskyIssues / offeneIssues × 100</code>
-                                <p className="mt-0.5">Anteil offener Issues mit mind. einem Risiko (keine Beschreibung, kein Datum, Abweichung &gt;{DEVIATION_THRESHOLD}%).</p>
+                                <p className="mt-0.5">Anteil offener Issues mit mind. einem Risiko: kein Label, kein Epic, keine Schätzung, keine Beschreibung, kein Datum oder Abweichung &gt;{DEVIATION_THRESHOLD}%.</p>
                             </div>
                             <div>
                                 <span className="font-medium text-foreground">Personenkonzentration</span>
@@ -293,65 +318,57 @@ export default function RiskyIssues({ issues, leaderboard = [], userCategoryMatr
             </div>
 
             {/* ── Tab Switch ── */}
-            <div className="flex gap-1 mb-4 border-b border-border">
-                <button
-                    onClick={() => setTab('issues')}
-                    className={`px-3 py-1.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
-                        tab === 'issues'
-                            ? 'border-foreground text-foreground'
-                            : 'border-transparent text-muted-foreground hover:text-foreground'
-                    }`}
-                >
-                    <span className="flex items-center gap-1.5">
-                        <AlertTriangle className="w-3.5 h-3.5" />
-                        Issues
-                        <span className="ml-0.5 text-xs opacity-70">({riskyIssues.length})</span>
-                    </span>
-                </button>
+            <div className="flex gap-0 mb-4 border-b border-border overflow-x-auto">
+                {/* Issues tabs */}
+                {([
+                    { key: 'all',            icon: <AlertTriangle className="w-3.5 h-3.5" />, label: 'Alle Issues' },
+                    { key: 'no_label',       icon: REASON_META.no_label.icon,       label: REASON_META.no_label.label },
+                    { key: 'no_epic',        icon: REASON_META.no_epic.icon,        label: REASON_META.no_epic.label },
+                    { key: 'no_estimate',    icon: REASON_META.no_estimate.icon,    label: REASON_META.no_estimate.label },
+                    { key: 'no_description', icon: REASON_META.no_description.icon, label: REASON_META.no_description.label },
+                    { key: 'no_dates',       icon: REASON_META.no_dates.icon,       label: REASON_META.no_dates.label },
+                    { key: 'high_deviation', icon: REASON_META.high_deviation.icon, label: REASON_META.high_deviation.label },
+                ] as const).map(({ key, icon, label }) => {
+                    const count = key === 'all' ? riskyIssues.length : counts[key as RiskReason];
+                    const active = tab === key;
+                    const meta = key !== 'all' ? REASON_META[key as RiskReason] : null;
+                    return (
+                        <button
+                            key={key}
+                            onClick={() => setTab(key)}
+                            className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium border-b-2 whitespace-nowrap transition-colors -mb-px ${
+                                active
+                                    ? `border-foreground text-foreground`
+                                    : 'border-transparent text-muted-foreground hover:text-foreground'
+                            }`}
+                        >
+                            <span className={active && meta ? meta.color.split(' ')[0] : ''}>{icon}</span>
+                            {label}
+                            <span className="opacity-60">({count})</span>
+                        </button>
+                    );
+                })}
+                {/* separator */}
+                <div className="w-px bg-border mx-1 self-stretch my-1" />
+                {/* Persons tab */}
                 <button
                     onClick={() => setTab('persons')}
-                    className={`px-3 py-1.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
+                    className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium border-b-2 whitespace-nowrap transition-colors -mb-px ${
                         tab === 'persons'
                             ? 'border-foreground text-foreground'
                             : 'border-transparent text-muted-foreground hover:text-foreground'
                     }`}
                 >
-                    <span className="flex items-center gap-1.5">
-                        <Users className="w-3.5 h-3.5" />
-                        Personen
-                        <span className="ml-0.5 text-xs opacity-70">({personRisks.length})</span>
-                    </span>
+                    <Users className="w-3.5 h-3.5" />
+                    Personen
+                    <span className="opacity-60">({personRisks.length})</span>
                 </button>
             </div>
+            {/* leftover from old tab code removed */}
 
-            {/* ── Issues Tab ── */}
-            {tab === 'issues' && (
+            {/* ── Issues / Filter Tabs content ── */}
+            {tab !== 'persons' && (
                 <>
-                    <div className="flex flex-wrap items-center gap-1.5 mb-4">
-                        {(['all', 'no_description', 'no_dates', 'high_deviation'] as const).map(key => {
-                            const active = filter === key;
-                            const label = key === 'all' ? 'Alle' : REASON_META[key].label;
-                            const count = counts[key];
-                            return (
-                                <button
-                                    key={key}
-                                    onClick={() => setFilter(key)}
-                                    className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
-                                        active
-                                            ? key === 'all'
-                                                ? 'bg-foreground/10 border-foreground/20 text-foreground'
-                                                : REASON_META[key].color + ' border'
-                                            : 'bg-transparent border-border text-muted-foreground hover:text-foreground'
-                                    }`}
-                                >
-                                    {key !== 'all' && REASON_META[key].icon}
-                                    {label}
-                                    <span className="ml-0.5 opacity-70">({count})</span>
-                                </button>
-                            );
-                        })}
-                    </div>
-
                     {filtered.length === 0 && (
                         <p className="text-sm text-muted-foreground py-4 text-center">Keine Treffer.</p>
                     )}
@@ -391,10 +408,7 @@ export default function RiskyIssues({ issues, leaderboard = [], userCategoryMatr
                                     return (
                                         <tr key={issue.iid} className="bg-card hover:bg-accent/30 transition-colors">
                                             <td className="px-4 py-2.5 max-w-[220px]">
-                                                <a
-                                                    href={issue.webUrl}
-                                                    target="_blank"
-                                                    rel="noreferrer"
+                                                <a href={issue.webUrl} target="_blank" rel="noreferrer"
                                                     className="flex items-center gap-1.5 hover:text-primary hover:underline transition-colors"
                                                 >
                                                     <span className="flex-shrink-0 w-2 h-2 rounded-full" style={{ backgroundColor: categoryColor }} />
@@ -417,8 +431,7 @@ export default function RiskyIssues({ issues, leaderboard = [], userCategoryMatr
                                             </td>
                                             <td className="px-3 py-2.5 whitespace-nowrap">
                                                 {category ? (
-                                                    <span
-                                                        className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium border"
+                                                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium border"
                                                         style={{ color: categoryColor, backgroundColor: categoryColor + '15', borderColor: categoryColor + '30' }}
                                                     >
                                                         {category}
@@ -455,7 +468,7 @@ export default function RiskyIssues({ issues, leaderboard = [], userCategoryMatr
 
                     {counts.all > 0 && (
                         <p className="mt-3 text-xs text-muted-foreground text-right">
-                            {counts.all} von {totalOpenIssues} offenen Issues betroffen · Abweichungsschwelle: &gt;{DEVIATION_THRESHOLD}%
+                            {filtered.length} von {totalOpenIssues} offenen Issues · Abweichungsschwelle: &gt;{DEVIATION_THRESHOLD}%
                         </p>
                     )}
                 </>

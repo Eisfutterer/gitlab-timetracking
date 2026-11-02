@@ -14,6 +14,7 @@ export interface Issue {
     labels: {
         nodes: Array<{title: string}>;
     };
+    epic: { iid: string; title: string } | null;
 }
 
 export interface EpicIssue {
