@@ -44,6 +44,34 @@ function buildWeekOptions(projectStart: Date, today: Date): WeekOption[] {
     return options.reverse();
 }
 
+function buildVlwOptions(projectStart: Date, today: Date): WeekOption[] {
+    const options: WeekOption[] = [];
+    // find the first Tuesday on or before projectStart
+    const cur = new Date(projectStart);
+    const dow = cur.getUTCDay(); // 0=Sun,1=Mon,2=Tue,...
+    const offset = dow >= 2 ? dow - 2 : dow + 5; // days back to reach Tuesday
+    cur.setUTCDate(cur.getUTCDate() - offset);
+
+    let counter = 1;
+    while (cur <= today) {
+        const monday = new Date(cur);
+        monday.setUTCDate(monday.getUTCDate() + 6); // Di + 6 = Mo
+        const year = cur.getUTCFullYear();
+        const week = isoWeek(cur);
+        options.push({
+            label: `VLW ${String(counter).padStart(2, '0')} (KW ${String(week).padStart(2, '0')} / ${year})`,
+            value: `vlw-${counter}`,
+            from: toDateStr(cur),
+            to: toDateStr(monday),
+        });
+        cur.setUTCDate(cur.getUTCDate() + 7);
+        counter++;
+    }
+    return options.reverse();
+}
+
+
+
 const PROJECT_START = new Date('2026-09-14');
 
 interface GroupOption {
@@ -56,7 +84,7 @@ export default function DateFilterBar() {
     const params = useSearchParams();
     const [pending, startTransition] = useTransition();
     const [groups, setGroups] = useState<GroupOption[]>([]);
-    const [mode, setMode] = useState<'kw' | 'custom'>('kw');
+    const [mode, setMode] = useState<'kw' | 'vlw' | 'custom'>('kw');
 
     const currentFrom  = params.get('from')  ?? '';
     const currentTo    = params.get('to')    ?? '';
@@ -65,8 +93,10 @@ export default function DateFilterBar() {
     const today = new Date();
     const yearEnd = new Date(Date.UTC(today.getUTCFullYear(), 11, 31));
     const weekOptions = buildWeekOptions(PROJECT_START, yearEnd);
+    const vlwOptions  = buildVlwOptions(PROJECT_START, yearEnd);
 
-    const activeKw = weekOptions.find(w => w.from === currentFrom && w.to === currentTo)?.value ?? '';
+    const activeKw  = weekOptions.find(w => w.from === currentFrom && w.to === currentTo)?.value ?? '';
+    const activeVlw = vlwOptions.find(w => w.from === currentFrom && w.to === currentTo)?.value ?? '';
     const currentKw = `${today.getUTCFullYear()}-${String(isoWeek(today)).padStart(2, '0')}`;
 
     useEffect(() => {
@@ -109,7 +139,7 @@ export default function DateFilterBar() {
         if (e.target.value) navigate({ to: e.target.value });
     }
 
-    function switchMode(next: 'kw' | 'custom') {
+    function switchMode(next: 'kw' | 'vlw' | 'custom') {
         setMode(next);
         navigate({ from: null, to: null });
     }
@@ -134,6 +164,17 @@ export default function DateFilterBar() {
                     KW
                 </button>
                 <button
+                    onClick={() => switchMode('vlw')}
+                    className={cn(
+                        'flex-1 py-1 transition-colors border-l border-border',
+                        mode === 'vlw'
+                            ? 'bg-accent text-accent-foreground font-medium'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-accent/40'
+                    )}
+                >
+                    VLW
+                </button>
+                <button
                     onClick={() => switchMode('custom')}
                     className={cn(
                         'flex-1 py-1 transition-colors border-l border-border',
@@ -156,6 +197,27 @@ export default function DateFilterBar() {
                             <option key={w.value} value={w.value}>
                                 {w.label}{w.value === currentKw ? '  ← aktuell' : ''}
                             </option>
+                        ))}
+                    </select>
+                </div>
+            )}
+
+            {/* VLW dropdown (Di–Mo) */}
+            {mode === 'vlw' && (
+                <div>
+                    <p className={labelCls}>Vorlesungswoche (Di – Mo)</p>
+                    <select
+                        value={activeVlw}
+                        onChange={e => {
+                            const opt = vlwOptions.find(w => w.value === e.target.value);
+                            if (opt) navigate({ from: opt.from, to: opt.to });
+                            else navigate({ from: null, to: null });
+                        }}
+                        className={selectCls}
+                    >
+                        <option value="">Alle VLWs</option>
+                        {vlwOptions.map(w => (
+                            <option key={w.value} value={w.value}>{w.label}</option>
                         ))}
                     </select>
                 </div>
