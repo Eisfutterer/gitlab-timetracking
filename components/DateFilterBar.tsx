@@ -98,7 +98,8 @@ export default function DateFilterBar() {
     const activeKw  = weekOptions.find(w => w.from === currentFrom && w.to === currentTo)?.value ?? '';
     const activeVlw = vlwOptions.find(w => w.from === currentFrom && w.to === currentTo)?.value ?? '';
     const currentKw = `${today.getUTCFullYear()}-${String(isoWeek(today)).padStart(2, '0')}`;
-
+    const todayStr  = toDateStr(today);
+    const currentVlw = vlwOptions.find(w => w.from <= todayStr && w.to >= todayStr)?.value ?? '';
     useEffect(() => {
         fetch('/api/groups')
             .then(r => r.json())
@@ -217,7 +218,9 @@ export default function DateFilterBar() {
                     >
                         <option value="">Alle VLWs</option>
                         {vlwOptions.map(w => (
-                            <option key={w.value} value={w.value}>{w.label}</option>
+                            <option key={w.value} value={w.value}>
+                                {w.label}{w.value === currentVlw ? '  ← aktuell' : ''}
+                            </option>
                         ))}
                     </select>
                 </div>
