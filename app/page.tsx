@@ -52,14 +52,11 @@ async function Dashboard({ searchParams }: PageProps) {
     const allTimelogs = [...timelogs, ...spendTimelogs];
     const allContextTimelogs = contextTimelogs ? [...contextTimelogs, ...spendTimelogs] : undefined;
 
-    // Filter issues to the selected date range (by createdAt) when a filter is active
+    // Filter issues to those with timelog activity in the selected range.
+    // Falls back to all issues when no date filter is active.
+    const activeIssueIids = new Set(allTimelogs.map(t => t.issue?.iid).filter(Boolean));
     const filteredIssues = (sp.from || sp.to)
-        ? issues.filter(issue => {
-            const d = new Date(issue.createdAt);
-            if (sp.from && d < new Date(sp.from)) return false;
-            if (sp.to   && d > new Date(sp.to))   return false;
-            return true;
-        })
+        ? issues.filter(issue => activeIssueIids.has(issue.iid))
         : issues;
 
     const chartData = processChartData(filteredIssues, allTimelogs, allContextTimelogs, isSingleKw ? startDate : undefined);
