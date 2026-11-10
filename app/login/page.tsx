@@ -46,7 +46,7 @@ function LoginForm() {
       });
 
       if (res.ok) {
-        router.replace(from);
+        window.location.href = from;
         return;
       }
 
