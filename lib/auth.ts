@@ -1,4 +1,4 @@
-import { createHmac, timingSafeEqual } from 'crypto';
+import { createHmac } from 'crypto';
 
 const SESSION_COOKIE = 'auth_session';
 const SESSION_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
@@ -25,7 +25,13 @@ export function verifySessionToken(token: string): boolean {
     const payload = decoded.slice(0, lastColon);
     const mac = decoded.slice(lastColon + 1);
     const expected = createHmac('sha256', getSecret()).update(payload).digest('hex');
-    return timingSafeEqual(Buffer.from(mac, 'hex'), Buffer.from(expected, 'hex'));
+    // Constant-time comparison without timingSafeEqual (Edge Runtime compatible)
+    if (mac.length !== expected.length) return false;
+    let diff = 0;
+    for (let i = 0; i < mac.length; i++) {
+      diff |= mac.charCodeAt(i) ^ expected.charCodeAt(i);
+    }
+    return diff === 0;
   } catch {
     return false;
   }
