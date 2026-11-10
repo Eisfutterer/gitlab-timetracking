@@ -72,8 +72,8 @@ export async function POST(req: NextRequest) {
   const res = NextResponse.json({ ok: true });
   res.cookies.set(SESSION_COOKIE, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    secure: false, // Cloudflare Tunnel handles HTTPS termination
+    sameSite: 'lax', // 'strict' blocks cross-origin redirects via Cloudflare
     maxAge: SESSION_MAX_AGE,
     path: '/',
   });
@@ -85,8 +85,8 @@ export async function DELETE(_req: NextRequest) {
   const res = NextResponse.json({ ok: true });
   res.cookies.set(SESSION_COOKIE, '', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    secure: false,
+    sameSite: 'lax',
     maxAge: 0,
     path: '/',
   });

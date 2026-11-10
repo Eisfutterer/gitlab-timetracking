@@ -43,10 +43,11 @@ function LoginForm() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
+        credentials: 'same-origin',
       });
 
       if (res.ok) {
-        window.location.href = from;
+        window.location.href = from.startsWith('/') ? from : '/';
         return;
       }
 
