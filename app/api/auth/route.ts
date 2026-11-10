@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
   let password: string;
   try {
     const body = await req.json();
-    username = String(body.username ?? '').trim().toLowerCase();
+    username = String(body.username ?? '').trim();
     password = String(body.password ?? '');
   } catch {
     return NextResponse.json({ error: 'Ungültige Anfrage' }, { status: 400 });
