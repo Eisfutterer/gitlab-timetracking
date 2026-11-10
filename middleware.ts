@@ -17,7 +17,11 @@ export function middleware(request: NextRequest) {
   }
 
   const token = request.cookies.get(SESSION_COOKIE)?.value;
-  if (token && verifySessionToken(token)) {
+  const valid = token ? verifySessionToken(token) : false;
+
+  console.log('[middleware]', pathname, 'token:', token?.slice(0, 20), 'valid:', valid, 'secret-len:', process.env.AUTH_SESSION_SECRET?.length);
+
+  if (valid) {
     return NextResponse.next();
   }
 
