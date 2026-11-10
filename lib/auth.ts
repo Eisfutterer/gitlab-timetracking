@@ -11,8 +11,8 @@ function getSecret(): string {
   return s;
 }
 
-export function createSessionToken(): string {
-  const payload = `${Date.now()}:${Math.random()}`;
+export function createSessionToken(username: string): string {
+  const payload = `${username}:${Date.now()}:${Math.random()}`;
   const mac = createHmac('sha256', getSecret()).update(payload).digest('hex');
   return Buffer.from(`${payload}:${mac}`).toString('base64url');
 }
@@ -32,6 +32,18 @@ export function verifySessionToken(token: string): boolean {
 }
 
 export { SESSION_COOKIE, SESSION_MAX_AGE };
+
+// ── User store ───────────────────────────────────────────────────────────────
+
+export function getUserHashes(): Record<string, string> {
+  const raw = process.env.AUTH_USERS ?? '';
+  if (!raw) return {};
+  try {
+    return JSON.parse(raw);
+  } catch {
+    throw new Error('AUTH_USERS is not valid JSON');
+  }
+}
 
 // ── Rate limiter (in-memory, per IP) ─────────────────────────────────────────
 

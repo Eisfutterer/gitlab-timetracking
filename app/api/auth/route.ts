@@ -4,6 +4,7 @@ import {
   createSessionToken,
   checkRateLimit,
   resetRateLimit,
+  getUserHashes,
   SESSION_COOKIE,
   SESSION_MAX_AGE,
 } from '@/lib/auth';
@@ -37,33 +38,36 @@ export async function POST(req: NextRequest) {
   if (!allowed) {
     return NextResponse.json(
       { error: 'Zu viele Versuche. Bitte warten.' },
-      {
-        status: 429,
-        headers: { 'Retry-After': String(retryAfter) },
-      }
+      { status: 429, headers: { 'Retry-After': String(retryAfter) } }
     );
   }
 
   // ── Parse body ───────────────────────────────────────────────────────────
+  let username: string;
   let password: string;
   try {
     const body = await req.json();
+    username = String(body.username ?? '').trim().toLowerCase();
     password = String(body.password ?? '');
   } catch {
     return NextResponse.json({ error: 'Ungültige Anfrage' }, { status: 400 });
   }
 
-  // ── Verify password (bcrypt, constant-time) ──────────────────────────────
-  const hash = process.env.AUTH_PASSWORD_HASH ?? '';
-  const valid = hash ? await bcrypt.compare(password, hash) : false;
+  // ── Look up user ─────────────────────────────────────────────────────────
+  const users = getUserHashes();
+  const hash = users[username];
+
+  // Always run bcrypt to prevent user-enumeration via timing
+  const dummyHash = '$2b$12$invalidhashpaddingtomatchcost000000000000000000000000000';
+  const valid = hash ? await bcrypt.compare(password, hash) : await bcrypt.compare(password, dummyHash).then(() => false);
 
   if (!valid) {
-    return NextResponse.json({ error: 'Falsches Passwort' }, { status: 401 });
+    return NextResponse.json({ error: 'Falscher Benutzername oder Passwort' }, { status: 401 });
   }
 
   // ── Issue session token ──────────────────────────────────────────────────
   resetRateLimit(ip);
-  const token = createSessionToken();
+  const token = createSessionToken(username);
 
   const res = NextResponse.json({ ok: true });
   res.cookies.set(SESSION_COOKIE, token, {

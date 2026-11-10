@@ -9,17 +9,17 @@ function LoginForm() {
   const params = useSearchParams();
   const from = params.get('from') ?? '/';
 
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [retryAfter, setRetryAfter] = useState(0);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const usernameRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    inputRef.current?.focus();
+    usernameRef.current?.focus();
   }, []);
 
-  // Countdown for rate-limit
   useEffect(() => {
     if (retryAfter <= 0) return;
     const id = setInterval(() => {
@@ -42,7 +42,7 @@ function LoginForm() {
       const res = await fetch('/api/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ username, password }),
       });
 
       if (res.ok) {
@@ -56,9 +56,8 @@ function LoginForm() {
         setError(`Zu viele Versuche. Bitte ${retry} Sekunden warten.`);
       } else {
         const data = await res.json().catch(() => ({}));
-        setError(data.error ?? 'Falsches Passwort');
+        setError(data.error ?? 'Falscher Benutzername oder Passwort');
         setPassword('');
-        inputRef.current?.focus();
       }
     } catch {
       setError('Netzwerkfehler. Bitte erneut versuchen.');
@@ -76,18 +75,36 @@ function LoginForm() {
           <div className="mb-6 text-center">
             <h1 className="text-xl font-semibold tracking-tight">Dashboard</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Passwort eingeben um fortzufahren
+              Anmelden um fortzufahren
             </p>
           </div>
 
           <form onSubmit={handleSubmit} noValidate>
             <div className="space-y-4">
               <div>
+                <label htmlFor="username" className="block text-sm font-medium mb-1.5">
+                  Benutzername
+                </label>
+                <input
+                  ref={usernameRef}
+                  id="username"
+                  type="text"
+                  value={username}
+                  onChange={e => setUsername(e.target.value)}
+                  disabled={disabled}
+                  required
+                  autoComplete="username"
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+                />
+              </div>
+
+              <div>
                 <label htmlFor="password" className="block text-sm font-medium mb-1.5">
                   Passwort
                 </label>
                 <input
-                  ref={inputRef}
                   id="password"
                   type="password"
                   value={password}
@@ -113,7 +130,7 @@ function LoginForm() {
 
               <button
                 type="submit"
-                disabled={disabled || !password}
+                disabled={disabled || !username || !password}
                 className="w-full rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {loading ? 'Wird geprüft…' : 'Anmelden'}
