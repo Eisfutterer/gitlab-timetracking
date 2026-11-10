@@ -1,13 +1,12 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { verifySessionToken, SESSION_COOKIE } from './lib/auth';
+import { verifySessionToken, SESSION_COOKIE } from './lib/auth-edge';
 
 const PUBLIC_PATHS = ['/login', '/api/auth'];
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Allow public paths and Next.js internals
   if (
     PUBLIC_PATHS.some(p => pathname.startsWith(p)) ||
     pathname.startsWith('/_next') ||
@@ -17,9 +16,7 @@ export function middleware(request: NextRequest) {
   }
 
   const token = request.cookies.get(SESSION_COOKIE)?.value;
-  const valid = token ? verifySessionToken(token) : false;
-
-  console.log('[middleware]', pathname, 'token:', token?.slice(0, 20), 'valid:', valid, 'secret-len:', process.env.AUTH_SESSION_SECRET?.length);
+  const valid = token ? await verifySessionToken(token) : false;
 
   if (valid) {
     return NextResponse.next();

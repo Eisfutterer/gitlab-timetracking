@@ -1,13 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
-import {
-  createSessionToken,
-  checkRateLimit,
-  resetRateLimit,
-  getUserHashes,
-  SESSION_COOKIE,
-  SESSION_MAX_AGE,
-} from '@/lib/auth';
+import { createSessionToken, SESSION_COOKIE, SESSION_MAX_AGE } from '@/lib/auth-edge';
+import { checkRateLimit, resetRateLimit, getUserHashes } from '@/lib/auth';
 
 function getClientIp(req: NextRequest): string {
   return (
@@ -67,7 +61,7 @@ export async function POST(req: NextRequest) {
 
   // ── Issue session token ──────────────────────────────────────────────────
   resetRateLimit(ip);
-  const token = createSessionToken(username);
+  const token = await createSessionToken(username);
 
   const res = NextResponse.json({ ok: true });
   res.cookies.set(SESSION_COOKIE, token, {
