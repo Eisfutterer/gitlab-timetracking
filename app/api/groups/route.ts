@@ -12,8 +12,12 @@ async function graphql(query: string): Promise<any> {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({ query }),
-        cache: 'no-store',
+        next: { revalidate: 3600 },
     });
+    if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`GitLab API ${res.status}: ${text.slice(0, 200)}`);
+    }
     const json = await res.json();
     if (json.errors) throw new Error(json.errors[0]?.message ?? 'GraphQL error');
     return json.data;
