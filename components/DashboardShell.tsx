@@ -24,6 +24,7 @@ import Leaderboard from './Leaderboard';
 import GroupComparison from './GroupComparison';
 import PresentationControls from './PresentationControls';
 import DateFilterBar from './DateFilterBar';
+import { GITLAB_CONFIG } from '@/config/dashboardConfig';
 
 import UserCategoryMatrix from './UserCategoryMatrix';
 import CFDChart from './CFDChart';
@@ -153,14 +154,18 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
         ),
         productivity: <ProductivityAnalysis productivityPatterns={productivityPatterns} />,
         collaboration: <TeamCollaboration collaborationData={collaborationData} averageTeamMembersData={averageTeamMembersData} COLORS={[...COLORS.PRIMARY]} />,
-        issues: (
-            <div className="space-y-6">
-                <IssueAnalysis issueComplexityData={issueComplexityData} COLORS={[...COLORS.PRIMARY]} />
-                <IssueTimeAnalysis issues={issues} />
-                <CFDChart data={cfdData} />
-                <RiskyIssues issues={issues} leaderboard={leaderboard} userCategoryMatrix={userCategoryMatrix} />
-            </div>
-        ),
+        issues: (() => {
+            const ownGroupUrl = `gitlab.com/${GITLAB_CONFIG.GROUP_PATH}/`;
+            const ownIssues = issues.filter(i => i.webUrl.includes(ownGroupUrl));
+            return (
+                <div className="space-y-6">
+                    <IssueAnalysis issueComplexityData={issueComplexityData} COLORS={[...COLORS.PRIMARY]} />
+                    <IssueTimeAnalysis issues={issues} />
+                    <CFDChart data={cfdData} />
+                    <RiskyIssues issues={ownIssues} leaderboard={leaderboard} userCategoryMatrix={userCategoryMatrix} />
+                </div>
+            );
+        })(),
         leaderboard: <Leaderboard leaderboard={leaderboard} personDetails={personDetails} projectMetrics={projectMetrics} />,
         groups: <GroupComparison />,
     };
