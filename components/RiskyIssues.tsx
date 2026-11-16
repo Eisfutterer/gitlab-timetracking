@@ -406,7 +406,7 @@ export default function RiskyIssues({ issues, leaderboard = [], userCategoryMatr
                                         'text-red-500';
 
                                     return (
-                                        <tr key={issue.iid} className="bg-card hover:bg-accent/30 transition-colors">
+                                        <tr key={issue.webUrl} className="bg-card hover:bg-accent/30 transition-colors">
                                             <td className="px-4 py-2.5 max-w-[220px]">
                                                 <a href={issue.webUrl} target="_blank" rel="noreferrer"
                                                     className="flex items-center gap-1.5 hover:text-primary hover:underline transition-colors"

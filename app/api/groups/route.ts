@@ -50,23 +50,43 @@ export async function GET() {
         const END = '2027-09-01';
         const results: GroupSummary[] = [];
 
+        async function fetchAllTimelogsForGroup(fullPath: string): Promise<number> {
+            let totalSeconds = 0;
+            let hasNextPage = true;
+            let endCursor: string | null = null;
+
+            while (hasNextPage) {
+                const gData = await graphql(`
+                    {
+                        group(fullPath: "${fullPath}") {
+                            timelogs(
+                                first: 100,
+                                after: ${endCursor ? `"${endCursor}"` : 'null'},
+                                startDate: "${START}",
+                                endDate: "${END}"
+                            ) {
+                                nodes { timeSpent }
+                                pageInfo { hasNextPage endCursor }
+                            }
+                        }
+                    }
+                `);
+
+                const tl = gData?.group?.timelogs;
+                if (!tl) break;
+                tl.nodes.forEach((n: { timeSpent: number }) => { totalSeconds += n.timeSpent; });
+                hasNextPage = tl.pageInfo.hasNextPage;
+                endCursor = tl.pageInfo.endCursor;
+            }
+
+            return totalSeconds;
+        }
+
         for (let i = 0; i < groups.length; i += 3) {
             const batch = groups.slice(i, i + 3);
             const batchResults = await Promise.allSettled(
                 batch.map(async (g) => {
-                    const gData = await graphql(`
-                        {
-                            group(fullPath: "${g.fullPath}") {
-                                timelogs(first: 500, startDate: "${START}", endDate: "${END}") {
-                                    nodes { timeSpent }
-                                }
-                            }
-                        }
-                    `);
-
-                    const nodes: Array<{ timeSpent: number }> = gData?.group?.timelogs?.nodes ?? [];
-                    const totalSeconds = nodes.reduce((s: number, n: { timeSpent: number }) => s + n.timeSpent, 0);
-
+                    const totalSeconds = await fetchAllTimelogsForGroup(g.fullPath);
                     return {
                         name: g.name,
                         fullPath: g.fullPath,
