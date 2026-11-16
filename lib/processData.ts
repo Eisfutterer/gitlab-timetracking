@@ -498,14 +498,10 @@ export function processChartData(
             const sprintCategoryHours: Record<string, number> = { ...CATEGORY_MAP };
 
             sprintLogs.forEach(log => {
-                if (log.issue && log.issue.labels && log.issue.labels.nodes) {
-                    const labels = log.issue.labels.nodes.map(n => n.title);
-                    const cat = resolveCategory(labels);
-                    if (cat !== 'Sonstige' && sprintCategoryHours[cat] !== undefined) {
-                        sprintCategoryHours[cat] += log.timeSpent / TIME_CONFIG.SECONDS_PER_HOUR;
-                        totalCategoryHours[cat] += log.timeSpent / TIME_CONFIG.SECONDS_PER_HOUR;
-                    }
-                }
+                const labels = log.issue?.labels?.nodes?.map(n => n.title) ?? [];
+                const cat = resolveCategory(labels);
+                sprintCategoryHours[cat] = (sprintCategoryHours[cat] ?? 0) + log.timeSpent / TIME_CONFIG.SECONDS_PER_HOUR;
+                totalCategoryHours[cat]  = (totalCategoryHours[cat]  ?? 0) + log.timeSpent / TIME_CONFIG.SECONDS_PER_HOUR;
             });
 
             const userHours: Record<string, number> = {};
