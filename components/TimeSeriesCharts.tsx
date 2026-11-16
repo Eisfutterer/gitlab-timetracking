@@ -76,6 +76,17 @@ const TimeSeriesCharts: React.FC<TimeSeriesChartsProps> = ({
 
     const sortedLineData = useMemo(() => lineData, [lineData]);
 
+    // Flatten categoryHours onto each sprint data point so Recharts can access them directly
+    const flatSprintData = useMemo(() =>
+        projectMetrics.sprintData.map(sp => ({
+            ...sp,
+            ...sp.categoryHours,
+        })),
+        [projectMetrics.sprintData]
+    );
+
+    const categoryKeys = Object.keys(projectMetrics.sprintData[0]?.categoryHours ?? {});
+
     return (
         <div>
             <CollapsibleCard title="Zeitliche Entwicklung">
@@ -129,7 +140,7 @@ const TimeSeriesCharts: React.FC<TimeSeriesChartsProps> = ({
                 <div>
                     <h4 className="text-sm font-medium text-muted-foreground mb-2">{CHART_TITLES.CATEGORY_TREND}</h4>
                     <ResponsiveContainer width="100%" height={CHART_CONFIG.HEIGHTS.SMALL}>
-                        <AreaChart data={projectMetrics.sprintData}>
+                        <AreaChart data={flatSprintData}>
                             <CartesianGrid strokeDasharray="3 3" stroke={ct.grid} />
                             <XAxis dataKey="sprintStart" tick={{ fill: ct.axis, fontSize: 12 }} />
                             <YAxis tick={{ fill: ct.axis, fontSize: 12 }} />
@@ -138,13 +149,13 @@ const TimeSeriesCharts: React.FC<TimeSeriesChartsProps> = ({
                                 cursor={false}
                             />
                             <Legend wrapperStyle={{ color: ct.axis, fontSize: 12 }} />
-                            {Object.keys(projectMetrics.sprintData[0]?.categoryHours || {}).map((category, index) => {
+                            {categoryKeys.map((category, index) => {
                                 const color = CFG_COLORS.CATEGORY[category as keyof typeof CFG_COLORS.CATEGORY] ?? COLORS[index % COLORS.length];
                                 return (
                                     <Area
                                         key={category}
                                         type="monotone"
-                                        dataKey={`categoryHours.${category}`}
+                                        dataKey={category}
                                         stackId="1"
                                         stroke={color}
                                         fill={color}
