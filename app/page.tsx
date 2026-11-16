@@ -5,6 +5,8 @@ import { GITLAB_CONFIG } from '@/config/dashboardConfig';
 import DashboardShell from '@/components/DashboardShell';
 import Loading from './loading';
 
+export const dynamic = 'force-dynamic';
+
 const DEFAULT_START = new Date('2026-09-01');
 const DEFAULT_END   = new Date('2027-09-01');
 const SPEND_ISSUE_LIMIT = 20;
