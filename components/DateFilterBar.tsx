@@ -46,20 +46,18 @@ function buildWeekOptions(projectStart: Date, today: Date): WeekOption[] {
 
 function buildVlwOptions(projectStart: Date, today: Date): WeekOption[] {
     const options: WeekOption[] = [];
-    // find the first Tuesday on or before projectStart
+    // find the first Tuesday on or after projectStart
     const cur = new Date(projectStart);
     const dow = cur.getUTCDay(); // 0=Sun,1=Mon,2=Tue,...
-    const offset = dow >= 2 ? dow - 2 : dow + 5; // days back to reach Tuesday
-    cur.setUTCDate(cur.getUTCDate() - offset);
+    const daysToTue = dow <= 2 ? 2 - dow : 9 - dow; // forward to next Tuesday
+    cur.setUTCDate(cur.getUTCDate() + daysToTue);
 
     let counter = 1;
     while (cur <= today) {
         const monday = new Date(cur);
         monday.setUTCDate(monday.getUTCDate() + 6); // Di + 6 = Mo
-        const year = cur.getUTCFullYear();
-        const week = isoWeek(cur);
         options.push({
-            label: `VLW ${String(counter).padStart(2, '0')} (KW ${String(week).padStart(2, '0')} / ${year})`,
+            label: `VLW ${String(counter).padStart(2, '0')} · Di ${toDateStr(cur).slice(5).split('-').reverse().join('.')} – Mo ${toDateStr(monday).slice(5).split('-').reverse().join('.')}`,
             value: `vlw-${counter}`,
             from: toDateStr(cur),
             to: toDateStr(monday),

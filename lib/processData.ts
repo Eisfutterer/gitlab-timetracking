@@ -177,14 +177,16 @@ function processCFD(issues: Issue[], selectedFrom?: Date): CFDDataPoint[] {
     });
 }
 
-function processLabelsTimeline(timelogs: Timelog[], selectedFrom?: Date): { points: LabelTimelinePoint[]; keys: string[] } {
+function processLabelsTimeline(timelogs: Timelog[], weekStartsOn: 0 | 1 | 2 = 1, selectedFrom?: Date): { points: LabelTimelinePoint[]; keys: string[] } {
     const weekMap: Record<string, Record<string, number | string>> = {};
 
     timelogs.forEach(log => {
         const d = new Date(log.spentAt);
-        const monday = startOfWeek(d, { weekStartsOn: 1 });
-        const week = format(monday, 'yyyy-II');
-        const kwLabel = `KW ${format(monday, 'II')} (${format(monday, 'dd.MM.yyyy')})`;
+        const weekStart = startOfWeek(d, { weekStartsOn });
+        const week = format(weekStart, 'yyyy-II');
+        const kwLabel = weekStartsOn === 2
+            ? `VLW (${format(weekStart, 'dd.MM.yyyy')})`
+            : `KW ${format(weekStart, 'II')} (${format(weekStart, 'dd.MM.yyyy')})`;
         const labels = log.issue?.labels?.nodes?.map(n => n.title) ?? [];
         const category = resolveCategory(labels);
 
@@ -192,13 +194,15 @@ function processLabelsTimeline(timelogs: Timelog[], selectedFrom?: Date): { poin
         weekMap[week][category] = ((weekMap[week][category] as number) ?? 0) + log.timeSpent / 3600;
     });
 
-    // If single KW selected, ensure prev/selected/next slots exist
+    // If single week selected, ensure prev/selected/next slots exist
     if (selectedFrom) {
-        const selMonday = startOfWeek(selectedFrom, { weekStartsOn: 1 });
+        const selStart = startOfWeek(selectedFrom, { weekStartsOn });
         [-1, 0, 1].forEach(offset => {
-            const monday = addWeeks(selMonday, offset);
-            const key = format(monday, 'yyyy-II');
-            const label = `KW ${format(monday, 'II')} (${format(monday, 'dd.MM.yyyy')})`;
+            const wStart = addWeeks(selStart, offset);
+            const key = format(wStart, 'yyyy-II');
+            const label = weekStartsOn === 2
+                ? `VLW (${format(wStart, 'dd.MM.yyyy')})`
+                : `KW ${format(wStart, 'II')} (${format(wStart, 'dd.MM.yyyy')})`;
             if (!weekMap[key]) weekMap[key] = { __label: label };
         });
     }
@@ -325,6 +329,7 @@ export function processChartData(
     timelogs: Timelog[],
     contextTimelogs?: Timelog[],
     selectedFrom?: Date,
+    weekStartsOn: 0 | 1 | 2 = 1,
 ): ChartData {
     // contextTimelogs: ±1 week around selected KW, for time-series charts only.
     const seriesLogs = contextTimelogs ?? timelogs;
@@ -367,9 +372,11 @@ export function processChartData(
     seriesLogs.forEach(log => {
         if (log.issue && log.issue.labels && log.issue.labels.nodes) {
             const d = new Date(log.spentAt);
-            const monday = startOfWeek(d, { weekStartsOn: 1 });
-            const week = format(monday, 'yyyy-II');
-            const kwLabel = `KW ${format(monday, 'II')} (${format(monday, 'dd.MM.yyyy')})`;
+            const weekStart = startOfWeek(d, { weekStartsOn });
+            const week = format(weekStart, 'yyyy-II');
+            const kwLabel = weekStartsOn === 2
+                ? `VLW (${format(weekStart, 'dd.MM.yyyy')})`
+                : `KW ${format(weekStart, 'II')} (${format(weekStart, 'dd.MM.yyyy')})`;
             const user = log.user.name;
             if (!weeklyMap[week]) weeklyMap[week] = { __label: kwLabel };
             weeklyMap[week][user] = ((weeklyMap[week][user] as number) ?? 0) + log.timeSpent;
@@ -378,15 +385,17 @@ export function processChartData(
 
     // If a single KW is selected, ensure prev/selected/next slots exist (even if empty)
     if (selectedFrom && contextTimelogs) {
-        const ensureSlot = (monday: Date) => {
-            const key = format(monday, 'yyyy-II');
-            const label = `KW ${format(monday, 'II')} (${format(monday, 'dd.MM.yyyy')})`;
+        const ensureSlot = (wStart: Date) => {
+            const key = format(wStart, 'yyyy-II');
+            const label = weekStartsOn === 2
+                ? `VLW (${format(wStart, 'dd.MM.yyyy')})`
+                : `KW ${format(wStart, 'II')} (${format(wStart, 'dd.MM.yyyy')})`;
             if (!weeklyMap[key]) weeklyMap[key] = { __label: label };
         };
-        const selMonday = startOfWeek(selectedFrom, { weekStartsOn: 1 });
-        ensureSlot(addWeeks(selMonday, -1)); // prev
-        ensureSlot(selMonday);               // selected
-        ensureSlot(addWeeks(selMonday, 1));  // next
+        const selStart = startOfWeek(selectedFrom, { weekStartsOn });
+        ensureSlot(addWeeks(selStart, -1));
+        ensureSlot(selStart);
+        ensureSlot(addWeeks(selStart, 1));
     }
 
     const lineData = Object.entries(weeklyMap)
@@ -470,17 +479,14 @@ export function processChartData(
     const sprintRangeStart = seriesFirstDate ?? firstDate ?? new Date();
     let   sprintRangeEnd   = seriesLastDate  ?? lastDate  ?? new Date();
 
-    // When a single KW is selected, ensure the loop reaches next KW
+    // When a single week is selected, ensure the loop reaches next week
     if (selectedFrom) {
-        const selMonday  = startOfWeek(selectedFrom, { weekStartsOn: 1 });
-        const nextSunday = addWeeks(selMonday, 2);
-        if (nextSunday > sprintRangeEnd) sprintRangeEnd = nextSunday;
+        const selStart   = startOfWeek(selectedFrom, { weekStartsOn });
+        const nextEnd = addWeeks(selStart, 2);
+        if (nextEnd > sprintRangeEnd) sprintRangeEnd = nextEnd;
     }
 
-    let sprintStart = new Date(sprintRangeStart);
-    // align to Monday (local time, consistent with date-fns usage throughout)
-    const startDay = sprintStart.getDay() || 7;
-    sprintStart.setDate(sprintStart.getDate() - (startDay - 1));
+    let sprintStart = startOfWeek(new Date(sprintRangeStart), { weekStartsOn });
 
     const sprintEnd_ = new Date(sprintRangeEnd);
     const totalCategoryHours: Record<string, number> = { ...CATEGORY_MAP };
@@ -488,13 +494,14 @@ export function processChartData(
     while (sprintStart <= sprintEnd_) {
         const sprintEnd = addWeeks(sprintStart, 1);
         const sprintLogs = seriesLogs.filter(log => {
-            // Use startOfWeek on the log date (local time) — same logic as lineData/weeklyMap
-            const d = new Date(log.spentAt);
-            const logMonday = startOfWeek(d, { weekStartsOn: 1 });
-            const sprintMonday = startOfWeek(sprintStart, { weekStartsOn: 1 });
-            const sprintNextMonday = startOfWeek(sprintEnd, { weekStartsOn: 1 });
-            return logMonday >= sprintMonday && logMonday < sprintNextMonday;
+            const logWeekStart = startOfWeek(new Date(log.spentAt), { weekStartsOn });
+            return logWeekStart >= sprintStart && logWeekStart < sprintEnd;
         });
+
+        const sprintLabel = weekStartsOn === 2
+            ? `VLW (${format(sprintStart, 'dd.MM.yyyy')})`
+            : `KW ${format(sprintStart, 'II')} (${format(sprintStart, 'dd.MM.yyyy')})`;
+        const sprintEndLabel = format(addWeeks(sprintStart, 1), 'dd.MM.yyyy');
 
         if (sprintLogs.length > 0) {
             const totalHours = sprintLogs.reduce((s, l) => s + l.timeSpent, 0) / TIME_CONFIG.SECONDS_PER_HOUR;
@@ -513,27 +520,27 @@ export function processChartData(
             });
 
             sprintData.push({
-                sprintStart: `KW ${format(sprintStart, 'II')} (${format(sprintStart, 'dd.MM.yyyy')})`,
-                sprintEnd: format(sprintEnd, 'dd.MM.yyyy'),
+                sprintStart: sprintLabel,
+                sprintEnd: sprintEndLabel,
                 totalHours,
                 categoryHours: sprintCategoryHours,
                 userHours,
                 sprintNumber: sprintData.length + 1,
             });
         } else if (selectedFrom) {
-            // Keep empty slot so ±1 KW context always shows 3 data points
-            const selMonday  = startOfWeek(selectedFrom, { weekStartsOn: 1 });
-            const prevMonday = addWeeks(selMonday, -1);
-            const nextMonday = addWeeks(selMonday, 1);
-            const sprintKey  = format(sprintStart, 'yyyy-II');
+            // Keep empty slot so ±1 week context always shows 3 data points
+            const selStart   = startOfWeek(selectedFrom, { weekStartsOn });
+            const prevStart  = addWeeks(selStart, -1);
+            const nextStart  = addWeeks(selStart, 1);
+            const sprintKey  = format(sprintStart, 'yyyy-MM-dd');
             const isContextSlot =
-                sprintKey === format(prevMonday, 'yyyy-II') ||
-                sprintKey === format(selMonday,  'yyyy-II') ||
-                sprintKey === format(nextMonday, 'yyyy-II');
+                sprintKey === format(prevStart, 'yyyy-MM-dd') ||
+                sprintKey === format(selStart,  'yyyy-MM-dd') ||
+                sprintKey === format(nextStart, 'yyyy-MM-dd');
             if (isContextSlot) {
                 sprintData.push({
-                    sprintStart: `KW ${format(sprintStart, 'II')} (${format(sprintStart, 'dd.MM.yyyy')})`,
-                    sprintEnd: format(sprintEnd, 'dd.MM.yyyy'),
+                    sprintStart: sprintLabel,
+                    sprintEnd: sprintEndLabel,
                     totalHours: 0,
                     categoryHours: { ...CATEGORY_MAP },
                     userHours: {},
@@ -690,7 +697,7 @@ export function processChartData(
     const peakHour = hourlyData.reduce((max, cur) => cur.value > max.value ? cur : max);
     const peakDay = weeklyData.reduce((max, cur) => cur.value > max.value ? cur : max);
 
-    const { points: labelsTimeline, keys: labelsTimelineKeys } = processLabelsTimeline(timelogs, selectedFrom);
+    const { points: labelsTimeline, keys: labelsTimelineKeys } = processLabelsTimeline(timelogs, weekStartsOn, selectedFrom);
     const { rows: userCategoryMatrix, keys: userCategoryKeys } = processUserCategoryMatrix(timelogs);
     const cfdData = processCFD(issues, selectedFrom);
 

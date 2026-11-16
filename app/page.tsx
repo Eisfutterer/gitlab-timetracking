@@ -23,6 +23,11 @@ async function Dashboard({ searchParams }: PageProps) {
     const endDate    = sp.to    ? new Date(sp.to)     : DEFAULT_END;
     const groupPaths = sp.group ? [sp.group] : await fetchAllGroupPaths();
 
+    // Detect week mode: if from is a Tuesday (UTC day=2) → VLW mode (Di–Mo)
+    const weekStartsOn: 0 | 1 | 2 = sp.from
+        ? (new Date(sp.from).getUTCDay() === 2 ? 2 : 1)
+        : 1;
+
     // Detect single-KW filter (from+to span exactly 7 days) → load ±1 week for chart context
     const isSingleKw = sp.from && sp.to && (endDate.getTime() - startDate.getTime()) <= MS_PER_WEEK;
     const contextStart = isSingleKw ? new Date(startDate.getTime() - MS_PER_WEEK) : null;
@@ -61,7 +66,7 @@ async function Dashboard({ searchParams }: PageProps) {
         ? issues.filter(issue => activeIssueIids.has(issue.iid))
         : issues;
 
-    const chartData = processChartData(filteredIssues, allTimelogs, allContextTimelogs, isSingleKw ? startDate : undefined);
+    const chartData = processChartData(filteredIssues, allTimelogs, allContextTimelogs, isSingleKw ? startDate : undefined, weekStartsOn);
 
     return <DashboardShell {...chartData} issues={filteredIssues} epics={epics} />;
 }
