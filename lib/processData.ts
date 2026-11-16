@@ -275,12 +275,21 @@ function processPersonDetails(
         const thisCatHours: Record<string, number> = {};
         const lastCatHours: Record<string, number> = {};
 
+        function parseSprintDate(s: string): Date {
+            // sprintStart: "KW 47 (10.11.2026)" — extract date in parens
+            // sprintEnd:   "17.11.2026"
+            const m = s.match(/\((\d{2}\.\d{2}\.\d{4})\)/);
+            const dateStr = m ? m[1] : s;
+            const [d, mo, y] = dateStr.split('.');
+            return new Date(`${y}-${mo}-${d}`);
+        }
+
         if (lastIdx >= 0) {
             const sp = sprintData[lastIdx];
             timelogs.filter(log => {
                 const d = new Date(log.spentAt);
-                const spStart = new Date(sp.sprintStart.split('.').reverse().join('-'));
-                const spEnd = new Date(sp.sprintEnd.split('.').reverse().join('-'));
+                const spStart = parseSprintDate(sp.sprintStart);
+                const spEnd = parseSprintDate(sp.sprintEnd);
                 return log.user.name === name && d >= spStart && d <= spEnd;
             }).forEach(log => {
                 const cat = resolveCategory(log.issue?.labels?.nodes?.map(n => n.title) ?? []);
@@ -292,8 +301,8 @@ function processPersonDetails(
             const sp = sprintData[prevIdx];
             timelogs.filter(log => {
                 const d = new Date(log.spentAt);
-                const spStart = new Date(sp.sprintStart.split('.').reverse().join('-'));
-                const spEnd = new Date(sp.sprintEnd.split('.').reverse().join('-'));
+                const spStart = parseSprintDate(sp.sprintStart);
+                const spEnd = parseSprintDate(sp.sprintEnd);
                 return log.user.name === name && d >= spStart && d <= spEnd;
             }).forEach(log => {
                 const cat = resolveCategory(log.issue?.labels?.nodes?.map(n => n.title) ?? []);
@@ -470,8 +479,8 @@ export function processChartData(
     }
 
     let sprintStart = new Date(sprintRangeStart);
-    // align to Monday
-    const startDay = sprintStart.getUTCDay() || 7;
+    // align to Monday (local time, consistent with date-fns usage throughout)
+    const startDay = sprintStart.getDay() || 7;
     sprintStart.setDate(sprintStart.getDate() - (startDay - 1));
 
     const sprintEnd_ = new Date(sprintRangeEnd);

@@ -91,7 +91,11 @@ export function calculateGamification(timelogs: Timelog[]): MemberGamification[]
         if (!memberMap[name]) memberMap[name] = { seconds: 0, weeklyHours: {} };
         memberMap[name].seconds += log.timeSpent;
 
-        const weekKey = new Date(log.spentAt).toISOString().slice(0, 10).replace(/\d{2}$/, '01');
+        const date = new Date(log.spentAt);
+        // key by ISO week start (Monday) so each calendar week counts once
+        const day = date.getDay() || 7;
+        date.setDate(date.getDate() - (day - 1));
+        const weekKey = date.toISOString().slice(0, 10);
         if (!memberMap[name].weeklyHours[weekKey]) memberMap[name].weeklyHours[weekKey] = 0;
         memberMap[name].weeklyHours[weekKey] += log.timeSpent / 3600;
     });

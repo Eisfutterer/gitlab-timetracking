@@ -154,7 +154,7 @@ function CardEpicNode({ epic, depth = 0, isLast = false }: { epic: Epic; depth?:
                             ))}
                             {epic.issues.nodes.map((issue, ii) => (
                                 <CardIssueRow
-                                    key={issue.iid}
+                                    key={issue.webUrl}
                                     issue={issue}
                                     isLast={ii === epic.issues.nodes.length - 1}
                                 />
