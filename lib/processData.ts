@@ -286,11 +286,11 @@ function processPersonDetails(
 
         if (lastIdx >= 0) {
             const sp = sprintData[lastIdx];
+            const spMonday = parseSprintDate(sp.sprintStart);
             timelogs.filter(log => {
-                const d = new Date(log.spentAt);
-                const spStart = parseSprintDate(sp.sprintStart);
-                const spEnd = parseSprintDate(sp.sprintEnd);
-                return log.user.name === name && d >= spStart && d <= spEnd;
+                const logMonday = startOfWeek(new Date(log.spentAt), { weekStartsOn: 1 });
+                return log.user.name === name &&
+                    logMonday.toISOString().slice(0, 10) === spMonday.toISOString().slice(0, 10);
             }).forEach(log => {
                 const cat = resolveCategory(log.issue?.labels?.nodes?.map(n => n.title) ?? []);
                 thisCatHours[cat] = (thisCatHours[cat] ?? 0) + log.timeSpent / 3600;
@@ -299,11 +299,11 @@ function processPersonDetails(
 
         if (prevIdx >= 0) {
             const sp = sprintData[prevIdx];
+            const spMonday = parseSprintDate(sp.sprintStart);
             timelogs.filter(log => {
-                const d = new Date(log.spentAt);
-                const spStart = parseSprintDate(sp.sprintStart);
-                const spEnd = parseSprintDate(sp.sprintEnd);
-                return log.user.name === name && d >= spStart && d <= spEnd;
+                const logMonday = startOfWeek(new Date(log.spentAt), { weekStartsOn: 1 });
+                return log.user.name === name &&
+                    logMonday.toISOString().slice(0, 10) === spMonday.toISOString().slice(0, 10);
             }).forEach(log => {
                 const cat = resolveCategory(log.issue?.labels?.nodes?.map(n => n.title) ?? []);
                 lastCatHours[cat] = (lastCatHours[cat] ?? 0) + log.timeSpent / 3600;
@@ -489,8 +489,12 @@ export function processChartData(
     while (sprintStart <= sprintEnd_) {
         const sprintEnd = addWeeks(sprintStart, 1);
         const sprintLogs = seriesLogs.filter(log => {
+            // Use startOfWeek on the log date (local time) — same logic as lineData/weeklyMap
             const d = new Date(log.spentAt);
-            return d >= sprintStart && d < sprintEnd;
+            const logMonday = startOfWeek(d, { weekStartsOn: 1 });
+            const sprintMonday = startOfWeek(sprintStart, { weekStartsOn: 1 });
+            const sprintNextMonday = startOfWeek(sprintEnd, { weekStartsOn: 1 });
+            return logMonday >= sprintMonday && logMonday < sprintNextMonday;
         });
 
         if (sprintLogs.length > 0) {
