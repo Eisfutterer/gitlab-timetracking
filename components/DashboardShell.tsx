@@ -72,7 +72,7 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
     const [collapsed, setCollapsed] = useState(false);
     const [presentationMode, setPresentationMode] = useState(false);
     const [presentationIndex, setPresentationIndex] = useState(0);
-    const { manualRefresh } = useAutoRefresh(false);
+    const { manualRefresh, isRefreshing } = useAutoRefresh(false);
 
     // Scrollspy — update activeSection as sections enter the viewport
     useEffect(() => {
@@ -273,10 +273,11 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
                     <div className={cn('flex gap-1', collapsed ? 'flex-col items-center' : 'flex-row items-center px-1')}>
                         <button
                             onClick={manualRefresh}
+                            disabled={isRefreshing}
                             title="Jetzt aktualisieren"
-                            className="rounded-md p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors"
+                            className="rounded-md p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors disabled:opacity-50"
                         >
-                            <RefreshCw className="h-4 w-4" />
+                            <RefreshCw className={cn('h-4 w-4', isRefreshing && 'animate-spin')} />
                         </button>
 
                         <Suspense fallback={null}>

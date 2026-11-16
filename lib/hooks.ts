@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 
 const INTERVAL_MS = 120_000; // 2 minutes
@@ -8,6 +8,7 @@ const INTERVAL_MS = 120_000; // 2 minutes
 export function useAutoRefresh(enabled: boolean) {
     const router = useRouter();
     const [secondsLeft, setSecondsLeft] = useState(INTERVAL_MS / 1000);
+    const [isPending, startTransition] = useTransition();
     const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const countRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -31,7 +32,7 @@ export function useAutoRefresh(enabled: boolean) {
         }, 1000);
 
         timerRef.current = setTimeout(function tick() {
-            router.refresh();
+            startTransition(() => router.refresh());
             reset();
             timerRef.current = setTimeout(tick, INTERVAL_MS);
         }, INTERVAL_MS);
@@ -45,7 +46,7 @@ export function useAutoRefresh(enabled: boolean) {
     function manualRefresh() {
         if (timerRef.current) clearTimeout(timerRef.current);
         if (countRef.current) clearInterval(countRef.current);
-        router.refresh();
+        startTransition(() => router.refresh());
         reset();
 
         if (enabled) {
@@ -56,12 +57,12 @@ export function useAutoRefresh(enabled: boolean) {
                 });
             }, 1000);
             timerRef.current = setTimeout(function tick() {
-                router.refresh();
+                startTransition(() => router.refresh());
                 reset();
                 timerRef.current = setTimeout(tick, INTERVAL_MS);
             }, INTERVAL_MS);
         }
     }
 
-    return { secondsLeft, manualRefresh };
+    return { secondsLeft, manualRefresh, isRefreshing: isPending };
 }
