@@ -1,4 +1,4 @@
-import { format, startOfWeek, getDay, getWeek, addMonths, subMonths, addWeeks } from 'date-fns';
+import { format, startOfWeek, getWeek, addMonths, subMonths, addWeeks } from 'date-fns';
 import { de } from 'date-fns/locale';
 import {
     CATEGORY_MAP,
@@ -286,11 +286,11 @@ function processPersonDetails(
 
         if (lastIdx >= 0) {
             const sp = sprintData[lastIdx];
-            const spMonday = parseSprintDate(sp.sprintStart);
+            const spMondayStr = parseSprintDate(sp.sprintStart);
+            const spMondayFmt = format(startOfWeek(spMondayStr, { weekStartsOn: 1 }), 'yyyy-MM-dd');
             timelogs.filter(log => {
-                const logMonday = startOfWeek(new Date(log.spentAt), { weekStartsOn: 1 });
-                return log.user.name === name &&
-                    logMonday.toISOString().slice(0, 10) === spMonday.toISOString().slice(0, 10);
+                const logMonday = format(startOfWeek(new Date(log.spentAt), { weekStartsOn: 1 }), 'yyyy-MM-dd');
+                return log.user.name === name && logMonday === spMondayFmt;
             }).forEach(log => {
                 const cat = resolveCategory(log.issue?.labels?.nodes?.map(n => n.title) ?? []);
                 thisCatHours[cat] = (thisCatHours[cat] ?? 0) + log.timeSpent / 3600;
@@ -299,11 +299,11 @@ function processPersonDetails(
 
         if (prevIdx >= 0) {
             const sp = sprintData[prevIdx];
-            const spMonday = parseSprintDate(sp.sprintStart);
+            const spMondayStr = parseSprintDate(sp.sprintStart);
+            const spMondayFmt = format(startOfWeek(spMondayStr, { weekStartsOn: 1 }), 'yyyy-MM-dd');
             timelogs.filter(log => {
-                const logMonday = startOfWeek(new Date(log.spentAt), { weekStartsOn: 1 });
-                return log.user.name === name &&
-                    logMonday.toISOString().slice(0, 10) === spMonday.toISOString().slice(0, 10);
+                const logMonday = format(startOfWeek(new Date(log.spentAt), { weekStartsOn: 1 }), 'yyyy-MM-dd');
+                return log.user.name === name && logMonday === spMondayFmt;
             }).forEach(log => {
                 const cat = resolveCategory(log.issue?.labels?.nodes?.map(n => n.title) ?? []);
                 lastCatHours[cat] = (lastCatHours[cat] ?? 0) + log.timeSpent / 3600;
@@ -437,8 +437,7 @@ export function processChartData(
 
     const weeks: HeatmapData[][] = [];
     // eslint-disable-next-line prefer-const
-    let currentDate = new Date(firstDate);
-    currentDate.setDate(currentDate.getDate() - getDay(currentDate));
+    let currentDate = startOfWeek(new Date(firstDate), { weekStartsOn: 0 }); // Sun start for heatmap grid
 
     while (currentDate <= lastDate) {
         const week: HeatmapData[] = [];
@@ -514,7 +513,7 @@ export function processChartData(
             });
 
             sprintData.push({
-                sprintStart: `KW ${String(getWeek(sprintStart, { locale: de })).padStart(2, '0')} (${format(sprintStart, 'dd.MM.yyyy')})`,
+                sprintStart: `KW ${format(sprintStart, 'II')} (${format(sprintStart, 'dd.MM.yyyy')})`,
                 sprintEnd: format(sprintEnd, 'dd.MM.yyyy'),
                 totalHours,
                 categoryHours: sprintCategoryHours,
@@ -533,7 +532,7 @@ export function processChartData(
                 sprintKey === format(nextMonday, 'yyyy-II');
             if (isContextSlot) {
                 sprintData.push({
-                    sprintStart: `KW ${String(getWeek(sprintStart, { locale: de })).padStart(2, '0')} (${format(sprintStart, 'dd.MM.yyyy')})`,
+                    sprintStart: `KW ${format(sprintStart, 'II')} (${format(sprintStart, 'dd.MM.yyyy')})`,
                     sprintEnd: format(sprintEnd, 'dd.MM.yyyy'),
                     totalHours: 0,
                     categoryHours: { ...CATEGORY_MAP },

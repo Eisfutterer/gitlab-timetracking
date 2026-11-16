@@ -1,3 +1,4 @@
+import { format, startOfWeek } from 'date-fns';
 import { Timelog } from '@/types/dashboard';
 
 export type TierLabel = 'Bronze' | 'Silber' | 'Gold' | 'Legende';
@@ -92,10 +93,9 @@ export function calculateGamification(timelogs: Timelog[]): MemberGamification[]
         memberMap[name].seconds += log.timeSpent;
 
         const date = new Date(log.spentAt);
-        // key by ISO week start (Monday) so each calendar week counts once
-        const day = date.getDay() || 7;
-        date.setDate(date.getDate() - (day - 1));
-        const weekKey = date.toISOString().slice(0, 10);
+        // key by ISO week Monday using date-fns local time (consistent with processData.ts)
+        const monday = startOfWeek(date, { weekStartsOn: 1 });
+        const weekKey = format(monday, 'yyyy-MM-dd');
         if (!memberMap[name].weeklyHours[weekKey]) memberMap[name].weeklyHours[weekKey] = 0;
         memberMap[name].weeklyHours[weekKey] += log.timeSpent / 3600;
     });
