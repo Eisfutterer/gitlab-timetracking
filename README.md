@@ -105,7 +105,7 @@ The dashboard automatically finds the first Tuesday on or after this date as VLW
 
 ### 3. Create the environment file
 
-Create a file called `.env.local` in the project root. **Never commit this file.**
+Create a file called `.env.local` in the project root (use `.env.example` as a template). **Never commit this file.**
 
 ```env
 # GitLab personal access token (read_api scope)
