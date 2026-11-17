@@ -321,7 +321,7 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
                     'border-t border-border px-6 py-4 text-center text-xs text-muted-foreground transition-all duration-200',
                     collapsed ? 'ml-0' : 'ml-0'
                 )}>
-                    © {new Date().getFullYear()} G4 MergeConflict — DHBW Stuttgart · DHBW Karlsruhe · Software Engineering I · TINF25B6
+                    © {new Date().getFullYear()} G4 MergeConflict · Software Engineering I · TINF25B6
                 </footer>
             </main>
         </div>
