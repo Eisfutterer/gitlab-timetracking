@@ -224,4 +224,4 @@ The software is provided "as is", without warranty of any kind. The authors acce
 
 ---
 
-© 2026 G4 MergeConflict — DHBW Karlsruhe · Software Engineering I · TINF25B6
+© 2026 G4 MergeConflict · Software Engineering I · TINF25B6
