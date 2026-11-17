@@ -1,71 +1,84 @@
 # GitLab Time Tracking Dashboard
 
-A dashboard for analyzing GitLab issue-based time tracking data, built for the Software Engineering I course at DHBW Stuttgart (TINF25B6, Group 4 — MergeConflict).
+A self-hosted web dashboard for visualizing GitLab issue-based time tracking data — built for the Software Engineering I course at DHBW Stuttgart (TINF25B6, Group 4 — MergeConflict), but adaptable to any GitLab group.
 
-## Features
+## What it shows
 
-- **Epics & Issues** — collapsible card view and interactive top-down SVG tree with category-colored nodes
-- **Projektübersicht** — KPI tiles: total hours, sprints, average velocity, category distribution
-- **Aktivität** — GitHub-style contribution heatmap (Mon–Sun)
-- **Zeitliche Entwicklung** — weekly hours per person (line chart) + category trend (stacked area)
-- **Team & Kategorien** — focus card (last/current cycle per person), pie + radar category distribution, per-person radar charts, user–category matrix
-- **Produktivitätsanalyse** — peak hour and peak weekday charts
-- **Kollaboration** — team collaboration graph, average team size per category
-- **Issues** — issue complexity scatter, time estimate vs. actual comparison, cumulative flow diagram (CFD)
-- **Leaderboard** — ranked team members with modal detail view (category breakdown, sprint history)
-- **Gruppen-Vergleich** — cross-group comparison
-- **Zeitraum-Filter** — KW dropdown (with "Alle KWs" + current KW marker) or custom date range; single-KW selection shows ±1 KW context in all charts
-- **Report-Export** — full HTML report with KPIs, leaderboard, category breakdown, KW trend, per-person details, CFD and productivity stats
-- **Dark / Light Mode** — full theme support
-- **Präsentationsmodus** — fullscreen slide-through with keyboard navigation
+| Section | Description |
+|---|---|
+| **Epics & Issues** | Collapsible card view + interactive SVG tree with category-colored nodes |
+| **Projektübersicht** | KPI tiles: total hours, sprints, average velocity, category distribution |
+| **Aktivität** | GitHub-style contribution heatmap |
+| **Zeitliche Entwicklung** | Weekly hours per person (line chart) + category trend (stacked area) |
+| **Team & Kategorien** | Focus card per person (last/current cycle), pie chart, per-person radar, user–category matrix |
+| **Produktivitätsanalyse** | Peak hour and peak weekday charts |
+| **Kollaboration** | Team collaboration graph, average team size per category |
+| **Issues** | Complexity scatter, time estimate vs. actual, cumulative flow diagram (CFD) |
+| **Leaderboard** | Ranked team members with modal detail view |
+| **Gamification** | XP + level + badge system per team member |
+| **Gruppen-Vergleich** | Cross-group comparison chart |
+| **Gantt** | Issue timeline view |
+| **Präsentationsmodus** | Fullscreen slide-through with keyboard navigation |
+| **Report-Export** | Self-contained HTML report download |
 
-## Tech Stack
+### Date filter modes
 
-- [Next.js 15](https://nextjs.org/) (App Router, async Server Components)
-- [Recharts](https://recharts.org/) — all charts
-- [Tailwind CSS](https://tailwindcss.com/) + [shadcn/ui](https://ui.shadcn.com/)
-- [date-fns](https://date-fns.org/) — ISO week calculations
-- GitLab GraphQL API
+- **KW** — ISO calendar week (Mon–Sun). Current week is marked `← aktuell`. Single-week selection shows ±1 week context in all charts.
+- **VLW** — Vorlesungswoche (Tue–Mon), numbered from the first Tuesday of the project. Same ±1 context logic.
+- **Zeitraum** — custom date range.
+
+---
 
 ## Setup
 
-### 1. Clone & install
+### Prerequisites
+
+- Node.js ≥ 18 **or** Docker
+- A GitLab personal access token with `read_api` scope
+
+---
+
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/Eisfutterer/gitlab-timetracking.git
 cd gitlab-timetracking
-npm install
 ```
 
-### 2. Environment variables
+---
 
-Create `.env.local` in the project root:
-
-```env
-GITLAB_TOKEN=your_gitlab_personal_access_token
-```
-
-The token needs at least `read_api` scope.  
-Go to **GitLab → Settings → Access Tokens** to create one.
-
-### 3. Configure the dashboard
+### 2. Configure the GitLab group and team
 
 Edit `config/dashboardConfig.ts`:
 
 ```ts
 export const GITLAB_CONFIG = {
     API_URL: 'https://gitlab.com/api/graphql',
-    GROUP_PATH: 'your-group/your-project',
-    GROUP_PATHS: ['your-group/your-project'],
-    PARENT_GROUP_PATH: 'your-group',
-    ISSUE_BASE_URL: 'https://gitlab.com/your-group/your-project/-/issues',
+
+    // Full path of your main project group
+    GROUP_PATH: 'your-org/your-course/your-group',
+
+    // List of groups whose issues are fetched (usually the same as GROUP_PATH)
+    GROUP_PATHS: [
+        'your-org/your-course/your-group',
+    ],
+
+    // Parent group used for the cross-group comparison chart
+    PARENT_GROUP_PATH: 'your-org/your-course',
+
+    ISSUE_BASE_URL: 'https://gitlab.com/your-org/your-course/your-group/-/issues',
 };
 
 export const TEAM_MEMBERS = [
-    "username1",
-    "username2",
+    "GitLab Username 1",
+    "GitLab Username 2",
+    // ...
 ] as const;
+```
 
+**Categories** map GitLab labels to chart buckets. Adjust names and colors to match your label scheme:
+
+```ts
 export const CATEGORIES = {
     PROJEKTMANAGEMENT:        "Projektmanagement",
     REQUIREMENTS_ENGINEERING: "Requirements Engineering",
@@ -74,42 +87,128 @@ export const CATEGORIES = {
 } as const;
 ```
 
-Category colors are defined in `COLORS.CATEGORY` and apply everywhere automatically.
+Add label aliases (e.g. English label → German display name) in `CATEGORY_ALIASES`, and regex fallbacks in `CATEGORY_PATTERNS`.
 
-### 4. Run locally
+**VLW start date** — if you use the VLW (Vorlesungswoche) filter, set the project start date in `components/DateFilterBar.tsx`:
 
-```bash
-npm run dev        # http://localhost:4823
+```ts
+const PROJECT_START = new Date('2026-09-14'); // first day of the project
 ```
 
-### 5. Run with Docker
+The dashboard automatically finds the first Tuesday on or after this date as VLW 01.
+
+---
+
+### 3. Create the environment file
+
+Create a file called `.env.local` in the project root. **Never commit this file.**
+
+```env
+# GitLab personal access token (read_api scope)
+GITLAB_TOKEN=glpat-xxxxxxxxxxxxxxxxxxxx
+
+# User accounts — JSON object: { "username": "bcrypt-hash" }
+# Escape every $ in bcrypt hashes as \$  (dotenv would expand $2b as a variable otherwise)
+AUTH_USERS={"alice":"\$2b\$12\$<hash>","bob":"\$2b\$12\$<hash>"}
+
+# Random secret for signing session cookies — generate with:
+# node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+AUTH_SESSION_SECRET=your_64_char_hex_secret
+```
+
+#### Generating a bcrypt password hash
+
+```bash
+node -e "const b = require('bcryptjs'); b.hash('yourpassword', 12).then(h => console.log(h))"
+```
+
+Copy the output and replace every `$` with `\$` before pasting into `AUTH_USERS`.
+
+**Example** — for a user `alice` with password `hunter2`:
+
+```bash
+$ node -e "const b = require('bcryptjs'); b.hash('hunter2', 12).then(h => console.log(h))"
+$2b$12$abc...xyz
+```
+
+In `.env.local`:
+
+```env
+AUTH_USERS={"alice":"\$2b\$12\$abc...xyz"}
+```
+
+To add more users, extend the JSON object:
+
+```env
+AUTH_USERS={"alice":"\$2b\$12\$...", "bob":"\$2b\$12\$..."}
+```
+
+---
+
+### 4a. Run locally (Node.js)
+
+```bash
+npm install
+npm run dev
+```
+
+Open [http://localhost:4823](http://localhost:4823) and log in.
+
+---
+
+### 4b. Run with Docker
 
 ```bash
 docker compose up --build
 ```
 
-The app will be available at `http://localhost:4823`.
+The app is available at [http://localhost:4823](http://localhost:4823).
 
-## Date range filter
+To run in the background:
 
-- **KW mode** — select a calendar week from the dropdown; "Alle KWs" shows all data. The current KW is marked with `← aktuell`.
-- **Zeitraum mode** — pick a custom from/to date.
-- When a single KW is selected, all time-series charts automatically show the previous and next KW for context.
+```bash
+docker compose up --build -d
+docker compose logs -f   # follow logs
+docker compose down      # stop
+```
 
-## Category labels
+The container reads `.env.local` automatically via `env_file` in `docker-compose.yml`.
 
-Issues need GitLab labels that match (or are mapped to) the configured categories. The label matching uses exact match → alias map → regex fallback. See `CATEGORY_ALIASES` and `CATEGORY_PATTERNS` in `dashboardConfig.ts`.
+---
 
-## Report
+### 5. Expose publicly (optional)
 
-Click the download icon in the sidebar to export a self-contained HTML report with:
-- KPI summary
-- Leaderboard with progress bars
-- Category distribution
-- KW-by-KW breakdown
-- Per-person category hours + focus shift
-- Cumulative flow diagram data
-- Peak productivity hour and day
+The simplest zero-config option is [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/):
+
+```bash
+# Install cloudflared, then:
+cloudflared tunnel --url http://localhost:4823
+```
+
+Cloudflare handles HTTPS. The dashboard's session cookies are already configured for this setup (`secure: false` at the app level; Cloudflare enforces HTTPS at the edge).
+
+---
+
+## Troubleshooting
+
+| Symptom | Fix |
+|---|---|
+| `GitLab API 401: Invalid token` | Token expired or wrong scope — create a new one with `read_api` |
+| `Falscher Benutzername oder Passwort` | Check that every `$` in `AUTH_USERS` is escaped as `\$` in `.env.local` |
+| `429 Zu viele Versuche` | Rate limiter triggered — wait ~1 min or restart the server (in-memory, resets on restart) |
+| Charts show no data | Verify `GROUP_PATH` in `dashboardConfig.ts` matches the exact GitLab group path |
+| VLW 01 starts on wrong date | Set `PROJECT_START` in `DateFilterBar.tsx` to your actual project start date |
+
+---
+
+## Tech Stack
+
+- [Next.js 15](https://nextjs.org/) — App Router, async Server Components, `force-dynamic` rendering
+- [Recharts](https://recharts.org/) — all charts
+- [Tailwind CSS](https://tailwindcss.com/) + [shadcn/ui](https://ui.shadcn.com/)
+- [date-fns](https://date-fns.org/) — ISO week + VLW calculations
+- [bcryptjs](https://github.com/dcodeIO/bcrypt.js) — password hashing
+- GitLab GraphQL API — timelogs, issues, epics
 
 ---
 
