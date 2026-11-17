@@ -4,32 +4,32 @@ A self-hosted web dashboard for visualizing GitLab issue-based time tracking dat
 
 ![Dashboard Demo](public/demo.gif)
 
-> *Die tatsächliche Darstellung im Browser ist deutlich schärfer — GIF-Format limitiert Farbtiefe und Framerate.*
+> *The actual appearance in the browser is significantly sharper — the GIF format limits color depth and frame rate.*
 
 ## What it shows
 
 | Section | Description |
 |---|---|
 | **Epics & Issues** | Collapsible card view + interactive SVG tree with category-colored nodes |
-| **Projektübersicht** | KPI tiles: total hours, sprints, average velocity, category distribution |
-| **Aktivität** | GitHub-style contribution heatmap |
-| **Zeitliche Entwicklung** | Weekly hours per person (line chart) + category trend (stacked area) |
-| **Team & Kategorien** | Focus card per person (last/current cycle), pie chart, per-person radar, user–category matrix |
-| **Produktivitätsanalyse** | Peak hour and peak weekday charts |
-| **Kollaboration** | Team collaboration graph, average team size per category |
+| **Project Overview** | KPI tiles: total hours, sprints, average velocity, category distribution |
+| **Activity** | GitHub-style contribution heatmap |
+| **Timeline** | Weekly hours per person (line chart) + category trend (stacked area) |
+| **Team & Categories** | Focus card per person (last/current cycle), pie chart, per-person radar, user–category matrix |
+| **Productivity** | Peak hour and peak weekday charts |
+| **Collaboration** | Team collaboration graph, average team size per category |
 | **Issues** | Complexity scatter, time estimate vs. actual, cumulative flow diagram (CFD) |
 | **Leaderboard** | Ranked team members with modal detail view |
 | **Gamification** | XP + level + badge system per team member |
-| **Gruppen-Vergleich** | Cross-group comparison chart |
+| **Group Comparison** | Cross-group comparison chart |
 | **Gantt** | Issue timeline view |
-| **Präsentationsmodus** | Fullscreen slide-through with keyboard navigation |
-| **Report-Export** | Self-contained HTML report download |
+| **Presentation Mode** | Fullscreen slide-through with keyboard navigation |
+| **Report Export** | Self-contained HTML report download |
 
 ### Date filter modes
 
-- **KW** — ISO calendar week (Mon–Sun). Current week is marked `← aktuell`. Single-week selection shows ±1 week context in all charts.
-- **VLW** — Vorlesungswoche (Tue–Mon), numbered from the first Tuesday of the project. Same ±1 context logic.
-- **Zeitraum** — custom date range.
+- **CW** — ISO calendar week (Mon–Sun). Current week is marked `← current`. Single-week selection shows ±1 week context in all charts.
+- **LW** — Lecture week (Tue–Mon), numbered from the first Tuesday of the project. Same ±1 context logic.
+- **Custom** — custom date range.
 
 ---
 
@@ -93,7 +93,7 @@ export const CATEGORIES = {
 
 Add label aliases (e.g. English label → German display name) in `CATEGORY_ALIASES`, and regex fallbacks in `CATEGORY_PATTERNS`.
 
-**VLW start date** — if you use the VLW (Vorlesungswoche) filter, set the project start date in `components/DateFilterBar.tsx`:
+**VLW start date** — if you use the lecture week (LW) filter, set the project start date in `components/DateFilterBar.tsx`:
 
 ```ts
 const PROJECT_START = new Date('2026-09-14'); // first day of the project
@@ -198,10 +198,10 @@ Cloudflare handles HTTPS. The dashboard's session cookies are already configured
 | Symptom | Fix |
 |---|---|
 | `GitLab API 401: Invalid token` | Token expired or wrong scope — create a new one with `read_api` |
-| `Falscher Benutzername oder Passwort` | Check that every `$` in `AUTH_USERS` is escaped as `\$` in `.env.local` |
-| `429 Zu viele Versuche` | Rate limiter triggered — wait ~1 min or restart the server (in-memory, resets on restart) |
+| `Wrong username or password` | Check that every `$` in `AUTH_USERS` is escaped as `\$` in `.env.local` |
+| `429 Too many attempts` | Rate limiter triggered — wait ~1 min or restart the server (in-memory, resets on restart) |
 | Charts show no data | Verify `GROUP_PATH` in `dashboardConfig.ts` matches the exact GitLab group path |
-| VLW 01 starts on wrong date | Set `PROJECT_START` in `DateFilterBar.tsx` to your actual project start date |
+| LW 01 starts on wrong date | Set `PROJECT_START` in `DateFilterBar.tsx` to your actual project start date |
 
 ---
 
