@@ -220,6 +220,8 @@ Cloudflare handles HTTPS. The dashboard's session cookies are already configured
 
 This project was created independently by Group 4 — MergeConflict as part of the Software Engineering I course at DHBW Karlsruhe (TINF25B6). It is not affiliated with, endorsed by, or officially associated with DHBW Karlsruhe or any of its faculty.
 
+The majority of this codebase was developed with the assistance of [Claude Code](https://claude.ai/code) (Anthropic's AI coding assistant). As such, no guarantees are made regarding correctness, security, or fitness for any particular purpose.
+
 The software is provided "as is", without warranty of any kind. The authors accept no liability for any damages, data loss, security issues, or other consequences arising from the use or misuse of this software.
 
 ---
