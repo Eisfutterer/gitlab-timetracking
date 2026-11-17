@@ -216,4 +216,12 @@ Cloudflare handles HTTPS. The dashboard's session cookies are already configured
 
 ---
 
+## Disclaimer
+
+This project was created independently by Group 4 — MergeConflict as part of the Software Engineering I course at DHBW Stuttgart (TINF25B6). It is not affiliated with, endorsed by, or officially associated with DHBW Stuttgart or any of its faculty.
+
+The software is provided "as is", without warranty of any kind. The authors accept no liability for any damages, data loss, security issues, or other consequences arising from the use or misuse of this software.
+
+---
+
 © 2026 G4 MergeConflict — DHBW Stuttgart · Software Engineering I · TINF25B6
