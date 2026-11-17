@@ -4,6 +4,8 @@ A self-hosted web dashboard for visualizing GitLab issue-based time tracking dat
 
 ![Dashboard Demo](public/demo.gif)
 
+> *Die tatsächliche Darstellung im Browser ist deutlich schärfer — GIF-Format limitiert Farbtiefe und Framerate.*
+
 ## What it shows
 
 | Section | Description |
