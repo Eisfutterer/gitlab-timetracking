@@ -2,6 +2,8 @@
 
 A self-hosted web dashboard for visualizing GitLab issue-based time tracking data — built for the Software Engineering I course at DHBW Stuttgart (TINF25B6, Group 4 — MergeConflict), but adaptable to any GitLab group.
 
+![Dashboard Demo](public/demo.gif)
+
 ## What it shows
 
 | Section | Description |
