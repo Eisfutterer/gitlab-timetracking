@@ -7,6 +7,7 @@ import {
     CATEGORY_ALIASES,
     TIME_CONFIG,
     GERMAN_DAYS,
+    TEAM_MEMBERS,
 } from '@/config/dashboardConfig';
 import {
     Issue,
@@ -50,9 +51,10 @@ export interface LeaderboardEntry {
     percentage: number;
 }
 
-export function processLeaderboard(timelogs: Timelog[]): LeaderboardEntry[] {
+export function processLeaderboard(timelogs: Timelog[], knownMembers?: readonly string[]): LeaderboardEntry[] {
     const userMap: Record<string, { seconds: number; issues: Set<string> }> = {};
 
+    (knownMembers ?? []).forEach(name => { userMap[name] = { seconds: 0, issues: new Set() }; });
     timelogs.forEach(log => {
         const name = log.user.name;
         if (!userMap[name]) userMap[name] = { seconds: 0, issues: new Set() };
@@ -220,9 +222,10 @@ function processLabelsTimeline(timelogs: Timelog[], weekStartsOn: 0 | 1 | 2 = 1,
     return { points, keys };
 }
 
-function processUserCategoryMatrix(timelogs: Timelog[]): { rows: UserCategoryRow[]; keys: string[] } {
+function processUserCategoryMatrix(timelogs: Timelog[], knownMembers?: readonly string[]): { rows: UserCategoryRow[]; keys: string[] } {
     const userMap: Record<string, Record<string, number>> = {};
 
+    (knownMembers ?? []).forEach(name => { userMap[name] = {}; });
     timelogs.forEach(log => {
         const user = log.user.name;
         const labels = log.issue?.labels?.nodes?.map(n => n.title) ?? [];
@@ -330,6 +333,7 @@ export function processChartData(
     contextTimelogs?: Timelog[],
     selectedFrom?: Date,
     weekStartsOn: 0 | 1 | 2 = 1,
+    knownMembers?: readonly string[],
 ): ChartData {
     // contextTimelogs: ±1 week around selected KW, for time-series charts only.
     const seriesLogs = contextTimelogs ?? timelogs;
@@ -398,19 +402,27 @@ export function processChartData(
         ensureSlot(addWeeks(selStart, 1));
     }
 
+    // All known users = configured members (if any) + anyone in logs
+    const lineDataUsers = Array.from(new Set([
+        ...(knownMembers ?? []),
+        ...seriesLogs.map(log => log.user.name),
+    ]));
+
     const lineData = Object.entries(weeklyMap)
         .sort(([a], [b]) => a.localeCompare(b))
         .map(([, users]) => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const row: Record<string, any> = { week: users.__label };
-            Object.entries(users).forEach(([user, time]) => {
-                if (user !== '__label') row[user] = (time as number) / TIME_CONFIG.SECONDS_PER_HOUR;
+            // include all known users, defaulting to 0 for absent ones
+            lineDataUsers.forEach(user => {
+                row[user] = user in users ? (users[user] as number) / TIME_CONFIG.SECONDS_PER_HOUR : 0;
             });
             return row;
         });
 
     // === 3. Barchart (Gesamtzeit/Person) ===
     const userMap: Record<string, number> = {};
+    (knownMembers ?? []).forEach(name => { userMap[name] = 0; });
     timelogs.forEach(log => {
         const user = log.user.name;
         if (!userMap[user]) userMap[user] = 0;
@@ -467,6 +479,12 @@ export function processChartData(
 
     // === Sprint / Project Metrics — uses seriesLogs for ±1 KW context ===
     const sprintData: ProjectMetrics['sprintData'] = [];
+
+    // All users that appear anywhere in seriesLogs — used to pad weekly/sprint maps with 0
+    const allUsers = Array.from(new Set([
+        ...(knownMembers ?? []),
+        ...seriesLogs.map(l => l.user.name),
+    ]));
 
     // Determine date range from seriesLogs (wider range when context provided)
     let seriesFirstDate: Date | null = null;
@@ -551,6 +569,13 @@ export function processChartData(
 
         sprintStart = sprintEnd;
     }
+
+    // Ensure every sprint entry contains every known user (fill absent users with 0)
+    sprintData.forEach(sp => {
+        allUsers.forEach(u => {
+            if (!(u in sp.userHours)) sp.userHours[u] = 0;
+        });
+    });
 
     const categoryDistribution = Object.entries(totalCategoryHours).map(([category, hours]) => ({
         category,
@@ -698,7 +723,7 @@ export function processChartData(
     const peakDay = weeklyData.reduce((max, cur) => cur.value > max.value ? cur : max);
 
     const { points: labelsTimeline, keys: labelsTimelineKeys } = processLabelsTimeline(timelogs, weekStartsOn, selectedFrom);
-    const { rows: userCategoryMatrix, keys: userCategoryKeys } = processUserCategoryMatrix(timelogs);
+    const { rows: userCategoryMatrix, keys: userCategoryKeys } = processUserCategoryMatrix(timelogs, knownMembers);
     const cfdData = processCFD(issues, selectedFrom);
 
     const sprintDataForPersonDetails = sprintData;
@@ -720,7 +745,7 @@ export function processChartData(
         issueComplexityData,
         collaborationData,
         productivityPatterns: { hourlyData, weeklyData, peakHour, peakDay },
-        leaderboard: processLeaderboard(timelogs),
+        leaderboard: processLeaderboard(timelogs, knownMembers),
         labelsTimeline,
         labelsTimelineKeys,
         userCategoryMatrix,

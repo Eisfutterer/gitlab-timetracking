@@ -37,6 +37,27 @@ export async function fetchAllGroupPaths(): Promise<string[]> {
     return paths.length > 0 ? paths : [...GITLAB_CONFIG.GROUP_PATHS];
 }
 
+export async function fetchGroupMembers(groupPath: string): Promise<{ name: string; username: string }[]> {
+    try {
+        const data = await graphql(`
+            {
+                group(fullPath: "${groupPath}") {
+                    groupMembers(first: 100, relations: [DIRECT]) {
+                        nodes { user { name username } }
+                    }
+                }
+            }
+        `);
+        const nodes: Array<{ user: { name: string; username: string } }> =
+            data?.group?.groupMembers?.nodes ?? [];
+        return nodes
+            .map(n => n.user)
+            .filter(u => !u.username.includes('_bot_'));
+    } catch {
+        return [];
+    }
+}
+
 
 async function fetchIssuesForGroup(groupPath: string): Promise<Issue[]> {
     let allIssues: Issue[] = [];
@@ -166,19 +187,17 @@ async function fetchTimelogsForUser(groupPath: string, username: string, startDa
     return allTimelogs;
 }
 
-export async function fetchAllTimelogs(startDate: Date, endDate: Date, groupPaths?: string[]): Promise<Timelog[]> {
+export async function fetchAllTimelogs(startDate: Date, endDate: Date, groupPaths?: string[], membersByGroup?: Record<string, { name: string; username: string }[]>): Promise<Timelog[]> {
     const paths = groupPaths ?? GITLAB_CONFIG.GROUP_PATHS;
-    const ownPaths = GITLAB_CONFIG.GROUP_PATHS;
 
     const results = await Promise.all(
         paths.map(path => {
-            // for own group: filter by known team members to avoid noise from non-members
-            if ((ownPaths as readonly string[]).includes(path)) {
+            const members = membersByGroup?.[path];
+            if (members && members.length > 0) {
                 return Promise.all(
-                    TEAM_MEMBERS.map(username => fetchTimelogsForUser(path, username, startDate, endDate))
+                    members.map(m => fetchTimelogsForUser(path, m.username, startDate, endDate))
                 ).then(r => r.flat());
             }
-            // for other groups: fetch all timelogs without username filter
             return fetchTimelogsForGroup(path, startDate, endDate);
         })
     );

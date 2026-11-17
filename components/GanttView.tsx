@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { Epic, EpicIssue } from '../types/dashboard';
 import { COLORS, resolveCategoryLabel } from '../config/dashboardConfig';
 
@@ -163,6 +163,7 @@ export default function GanttView({ epics }: { epics: Epic[] }) {
     const [hovered, setHovered] = useState<string | null>(null);
     const [tooltip, setTooltip] = useState<{ x: number; y: number; row: GanttRow } | null>(null);
     const [showOnlyExplicit, setShowOnlyExplicit] = useState(false);
+    const scrollRef = useRef<HTMLDivElement>(null);
 
     const allRows = useMemo(() =>
         epics.flatMap(e => collectRows(e, 0, today)),
@@ -188,6 +189,14 @@ export default function GanttView({ epics }: { epics: Epic[] }) {
     const totalDays = diffDays(minDate, maxDate) + 1;
     const svgW = totalDays * DAY_W;
     const svgH = rows.length * ROW_H + HEADER_H;
+    const todayX = diffDays(minDate, today) * DAY_W;
+
+    // scroll to today on mount
+    useEffect(() => {
+        if (!scrollRef.current) return;
+        const offset = todayX - scrollRef.current.clientWidth / 2 + DAY_W / 2;
+        scrollRef.current.scrollLeft = Math.max(0, offset);
+    }, [todayX]);
 
     // week columns for header
     const weeks: { label: string; x: number; w: number }[] = useMemo(() => {
@@ -218,8 +227,6 @@ export default function GanttView({ epics }: { epics: Epic[] }) {
         }
         return result;
     }, [minDate, totalDays, today]);
-
-    const todayX = diffDays(minDate, today) * DAY_W;
 
     if (epics.length === 0) {
         return <p className="text-sm text-muted-foreground">Keine Epics gefunden.</p>;
@@ -280,7 +287,7 @@ export default function GanttView({ epics }: { epics: Epic[] }) {
                 </div>
 
                 {/* right: scrollable gantt area */}
-                <div className="flex-1 overflow-x-auto overflow-y-hidden">
+                <div ref={scrollRef} className="flex-1 overflow-x-auto overflow-y-hidden">
                     <svg width={svgW} height={svgH} style={{ display: 'block' }}>
                         {/* week header bands */}
                         {weeks.map((w, i) => (
