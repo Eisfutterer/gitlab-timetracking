@@ -1,11 +1,12 @@
 "use client"
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Epic, EpicIssue } from '../types/dashboard';
+import { Epic, EpicIssue, Issue } from '../types/dashboard';
 import { COLORS, resolveCategoryLabel } from '../config/dashboardConfig';
 import CollapsibleCard from './CollapsibleCard';
-import { List, GitBranch, GanttChart } from 'lucide-react';
+import { List, GitBranch, GanttChart, Milestone } from 'lucide-react';
 import GanttView from './GanttView';
+import MilestoneGanttView from './MilestoneGanttView';
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -191,7 +192,7 @@ function epicToTreeNode(epic: Epic, depth: number): TreeNode {
 
     const closedIssues = epic.issues.nodes.filter(i => i.state === 'closed').length;
     const issueChildren: TreeNode[] = epic.issues.nodes.map(issue => ({
-        id: `issue-${issue.iid}`,
+        id: `issue-${epic.id}-${issue.iid}`,
         label: `#${issue.iid}`,
         title: issue.title,
         color: getIssueColor(issue),
@@ -494,8 +495,8 @@ function SvgTree({ roots }: { roots: TreeNode[] }) {
 
 // ── Root ──────────────────────────────────────────────────────────────────────
 
-export default function EpicGraph({ epics }: { epics: Epic[] }) {
-    const [view, setView] = useState<'card' | 'tree' | 'gantt'>('card');
+export default function EpicGraph({ epics, issues }: { epics: Epic[]; issues: Issue[] }) {
+    const [view, setView] = useState<'card' | 'tree' | 'gantt' | 'milestones'>('card');
     const [showClosed, setShowClosed] = useState(false);
 
     // Filter closed issues out of epics recursively when showClosed is false
@@ -515,6 +516,9 @@ export default function EpicGraph({ epics }: { epics: Epic[] }) {
 
     const visibleEpics = epics.map(filterEpic);
     const treeRoots = visibleEpics.map(e => epicToTreeNode(e, 0));
+
+    // Milestone view uses the flat issues list; respect the same "show closed" toggle
+    const visibleIssues = showClosed ? issues : issues.filter(i => i.state !== 'closed');
 
     const totalIssues = epics.flatMap(function countAll(e: Epic): EpicIssue[] {
         return [...e.issues.nodes, ...e.children.nodes.flatMap(countAll)];
@@ -550,6 +554,9 @@ export default function EpicGraph({ epics }: { epics: Epic[] }) {
                         <button onClick={() => setView('gantt')} className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${view === 'gantt' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
                             <GanttChart className="w-3.5 h-3.5" /> Gantt
                         </button>
+                        <button onClick={() => setView('milestones')} className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${view === 'milestones' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
+                            <Milestone className="w-3.5 h-3.5" /> Meilensteine
+                        </button>
                     </div>
                 </div>
             }
@@ -567,6 +574,8 @@ export default function EpicGraph({ epics }: { epics: Epic[] }) {
             {view === 'tree' && visibleEpics.length > 0 && <SvgTree roots={treeRoots} />}
 
             {view === 'gantt' && <GanttView epics={visibleEpics} />}
+
+            {view === 'milestones' && <MilestoneGanttView issues={visibleIssues} />}
         </CollapsibleCard>
     );
 }

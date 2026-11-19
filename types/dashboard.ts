@@ -1,3 +1,9 @@
+export interface Milestone {
+    title: string;
+    startDate: string | null;
+    dueDate: string | null;
+}
+
 export interface Issue {
     title: string;
     timeEstimate: number;
@@ -14,6 +20,7 @@ export interface Issue {
     labels: {
         nodes: Array<{title: string}>;
     };
+    milestone: Milestone | null;
     epic: { iid: string; title: string } | null;
 }
 
