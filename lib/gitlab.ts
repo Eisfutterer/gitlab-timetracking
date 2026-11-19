@@ -76,7 +76,7 @@ async function fetchIssuesForGroup(groupPath: string): Promise<Issue[]> {
                             labels { nodes { title } }
                             timeEstimate
                             totalTimeSpent
-                            milestone { title startDate dueDate }
+                            milestone { title startDate dueDate webPath }
                             epic { iid title }
                         }
                         pageInfo { hasNextPage endCursor }

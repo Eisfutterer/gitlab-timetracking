@@ -77,10 +77,24 @@ interface MilestoneGroup {
     start: Date | null;
     end: Date | null;
     dated: boolean;
+    webUrl: string | null;
     issues: Issue[];
 }
 
 const UNDATED_KEY = '__no_milestone__';
+
+// milestone webPath is relative (e.g. "/group/-/milestones/3"); resolve against an issue's absolute origin
+function milestoneUrl(issues: Issue[]): string | null {
+    const ms = issues[0]?.milestone;
+    if (!ms?.webPath) return null;
+    const ref = issues.find(i => i.webUrl)?.webUrl;
+    if (!ref) return null;
+    try {
+        return new URL(ms.webPath, new URL(ref).origin).href;
+    } catch {
+        return null;
+    }
+}
 
 function buildGroups(issues: Issue[]): MilestoneGroup[] {
     // dedupe: the same issue can arrive from multiple group paths (includeSubgroups)
@@ -101,7 +115,7 @@ function buildGroups(issues: Issue[]): MilestoneGroup[] {
     const groups: MilestoneGroup[] = [];
     for (const [title, groupIssues] of byTitle) {
         if (title === UNDATED_KEY) {
-            groups.push({ title: 'Ohne Meilenstein', start: null, end: null, dated: false, issues: groupIssues });
+            groups.push({ title: 'Ohne Meilenstein', start: null, end: null, dated: false, webUrl: null, issues: groupIssues });
             continue;
         }
         // milestone dates come from any issue in the group (all share the same milestone)
@@ -112,7 +126,7 @@ function buildGroups(issues: Issue[]): MilestoneGroup[] {
         const start = s ?? e;
         const end = e ?? s;
         const dated = !!(start && end);
-        groups.push({ title, start, end, dated, issues: groupIssues });
+        groups.push({ title, start, end, dated, webUrl: milestoneUrl(groupIssues), issues: groupIssues });
     }
 
     // dated groups first, sorted by start date; undated/no-milestone last
@@ -133,6 +147,7 @@ function groupsToRows(groups: MilestoneGroup[], showUndated: boolean, collapsed:
         rows.push({
             id: `ms-${g.title}`,
             title: g.title,
+            webUrl: g.webUrl ?? undefined,
             color: MILESTONE_COLOR,
             isMilestone: true,
             state: g.issues.every(i => i.state === 'closed') ? 'closed' : 'opened',
@@ -326,28 +341,45 @@ export default function MilestoneGanttView({ issues }: { issues: Issue[] }) {
                                 onMouseLeave={() => setHovered(null)}
                             >
                                 {row.isMilestone ? (
-                                    <button
-                                        type="button"
-                                        onClick={() => toggleCollapse(row.milestoneTitle)}
-                                        className="flex items-center gap-1.5 min-w-0 flex-1 text-left hover:opacity-80 transition-opacity"
-                                        title={isCollapsed ? 'Ausklappen' : 'Einklappen'}
-                                    >
-                                        {isCollapsed
-                                            ? <ChevronRight className="w-3.5 h-3.5 flex-shrink-0" style={{ color: MILESTONE_COLOR }} />
-                                            : <ChevronDown className="w-3.5 h-3.5 flex-shrink-0" style={{ color: MILESTONE_COLOR }} />}
-                                        <span
-                                            className={`truncate font-semibold ${row.state === 'closed' ? 'opacity-60' : ''}`}
-                                            style={{ color: MILESTONE_COLOR }}
+                                    <>
+                                        <button
+                                            type="button"
+                                            onClick={() => toggleCollapse(row.milestoneTitle)}
+                                            className="flex-shrink-0 hover:opacity-70 transition-opacity"
+                                            title={isCollapsed ? 'Ausklappen' : 'Einklappen'}
                                         >
-                                            {row.title}
-                                            {!row.dated && <span className="ml-1 font-normal text-muted-foreground">(ohne Termin)</span>}
-                                        </span>
+                                            {isCollapsed
+                                                ? <ChevronRight className="w-3.5 h-3.5" style={{ color: MILESTONE_COLOR }} />
+                                                : <ChevronDown className="w-3.5 h-3.5" style={{ color: MILESTONE_COLOR }} />}
+                                        </button>
+                                        {row.webUrl ? (
+                                            <a
+                                                href={row.webUrl}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className={`truncate font-semibold hover:underline ${row.state === 'closed' ? 'opacity-60' : ''}`}
+                                                style={{ color: MILESTONE_COLOR }}
+                                                title={row.title}
+                                            >
+                                                {row.title}
+                                                {!row.dated && <span className="ml-1 font-normal text-muted-foreground">(ohne Termin)</span>}
+                                            </a>
+                                        ) : (
+                                            <span
+                                                className={`truncate font-semibold ${row.state === 'closed' ? 'opacity-60' : ''}`}
+                                                style={{ color: MILESTONE_COLOR }}
+                                                title={row.title}
+                                            >
+                                                {row.title}
+                                                {!row.dated && <span className="ml-1 font-normal text-muted-foreground">(ohne Termin)</span>}
+                                            </span>
+                                        )}
                                         {row.issueCount != null && (
                                             <span className="ml-auto mr-2 flex-shrink-0 rounded-full bg-muted/60 px-1.5 text-[10px] text-muted-foreground">
                                                 {row.issueCount}
                                             </span>
                                         )}
-                                    </button>
+                                    </>
                                 ) : (
                                     <>
                                         <span
@@ -483,7 +515,7 @@ export default function MilestoneGanttView({ issues }: { issues: Issue[] }) {
                             const x2 = (diffDays(minDate, row.end) + 1) * DAY_W;
                             const barW = Math.max(x2 - x1, DAY_W);
                             const barY = BODY_TOP + i * ROW_H;
-                            const pad = row.isMilestone ? 7 : 9;
+                            const pad = 9;
                             const bh = ROW_H - pad * 2;
                             const rr = bh / 2;
                             const alpha = row.state === 'closed' ? 0.45 : 1;

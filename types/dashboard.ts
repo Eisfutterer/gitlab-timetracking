@@ -2,6 +2,7 @@ export interface Milestone {
     title: string;
     startDate: string | null;
     dueDate: string | null;
+    webPath: string | null;
 }
 
 export interface Issue {
