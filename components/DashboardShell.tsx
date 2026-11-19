@@ -141,7 +141,7 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
     };
 
     const sectionContent: Record<string, React.ReactNode> = {
-        epics: <EpicGraph epics={epics} />,
+        epics: <EpicGraph epics={epics} issues={issues} />,
         overview: <ProjectOverview projectMetrics={projectMetrics} issues={issues} />,
         activity: <DetailedActivity heatmapData={heatmapData} HEATMAP_COLORS={[...COLORS.HEATMAP]} formatTime={formatTime} />,
         timeseries: <TimeSeriesCharts projectMetrics={projectMetrics} lineData={lineData} barData={barData} TEAM_COLORS={[...COLORS.TEAM]} COLORS={[...COLORS.PRIMARY]} />,

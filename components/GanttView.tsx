@@ -132,7 +132,7 @@ function collectRows(epic: Epic, depth: number, today: Date): GanttRow[] {
         const e = parseDate(issue.dueDate) ?? parseDate(issue.closedAt) ?? today;
         const hasExplicit = !!(issue.startDate || issue.dueDate);
         rows.push({
-            id: `issue-${issue.iid}`,
+            id: `issue-${epic.id}-${issue.iid}`,
             title: issue.title,
             iid: issue.iid,
             webUrl: issue.webUrl,
