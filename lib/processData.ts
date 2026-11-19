@@ -82,7 +82,7 @@ export function processLeaderboard(timelogs: Timelog[], knownMembers?: readonly 
 
 const SPEND_PATTERN = /\/spend\s+(\d+(?:\.\d+)?)(h|m|d|w)/gi;
 
-function parseDuration(value: number, unit: string): number {
+export function parseDuration(value: number, unit: string): number {
     switch (unit.toLowerCase()) {
         case 'h': return value * 3600;
         case 'm': return value * 60;
@@ -119,7 +119,7 @@ export function parseSpendNotes(
 // Resolve a list of label titles to a known category.
 // Priority: 1) exact match against CATEGORY_LIST  2) alias map  3) regex patterns  4) 'Sonstige'
 // Handles namespaced labels like "category::project-management" by stripping the prefix.
-function resolveCategory(labelTitles: string[]): string {
+export function resolveCategory(labelTitles: string[]): string {
     if (labelTitles.length === 0) return 'Sonstige';
     const stripped = (l: string) => l.includes('::') ? l.split('::').slice(1).join('::') : l;
     // exact match against canonical names (case-insensitive), try both original and stripped
@@ -145,7 +145,7 @@ export function resolveSingleLabel(labelTitle: string): string | null {
     return result === 'Sonstige' ? null : result;
 }
 
-function processCFD(issues: Issue[], selectedFrom?: Date): CFDDataPoint[] {
+export function processCFD(issues: Issue[], selectedFrom?: Date): CFDDataPoint[] {
     const weekMap: Record<string, { opened: number; closed: number }> = {};
 
     issues.forEach(issue => {
@@ -179,7 +179,7 @@ function processCFD(issues: Issue[], selectedFrom?: Date): CFDDataPoint[] {
     });
 }
 
-function processLabelsTimeline(timelogs: Timelog[], weekStartsOn: 0 | 1 | 2 = 1, selectedFrom?: Date): { points: LabelTimelinePoint[]; keys: string[] } {
+export function processLabelsTimeline(timelogs: Timelog[], weekStartsOn: 0 | 1 | 2 = 1, selectedFrom?: Date): { points: LabelTimelinePoint[]; keys: string[] } {
     const weekMap: Record<string, Record<string, number | string>> = {};
 
     timelogs.forEach(log => {
@@ -222,7 +222,7 @@ function processLabelsTimeline(timelogs: Timelog[], weekStartsOn: 0 | 1 | 2 = 1,
     return { points, keys };
 }
 
-function processUserCategoryMatrix(timelogs: Timelog[], knownMembers?: readonly string[]): { rows: UserCategoryRow[]; keys: string[] } {
+export function processUserCategoryMatrix(timelogs: Timelog[], knownMembers?: readonly string[]): { rows: UserCategoryRow[]; keys: string[] } {
     const userMap: Record<string, Record<string, number>> = {};
 
     (knownMembers ?? []).forEach(name => { userMap[name] = {}; });
@@ -250,7 +250,7 @@ function processUserCategoryMatrix(timelogs: Timelog[], knownMembers?: readonly 
     return { rows, keys };
 }
 
-function topCategory(hours: Record<string, number>): string {
+export function topCategory(hours: Record<string, number>): string {
     let best = 'Sonstige';
     let bestVal = 0;
     for (const [cat, h] of Object.entries(hours)) {
@@ -259,7 +259,7 @@ function topCategory(hours: Record<string, number>): string {
     return best;
 }
 
-function processPersonDetails(
+export function processPersonDetails(
     timelogs: Timelog[],
     sprintData: ProjectMetrics['sprintData'],
 ): PersonDetail[] {

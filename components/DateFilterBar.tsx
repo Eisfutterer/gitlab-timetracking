@@ -1,14 +1,15 @@
 'use client';
 
+import React from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTransition, useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 
-function toDateStr(d: Date) {
+export function toDateStr(d: Date) {
     return d.toISOString().slice(0, 10);
 }
 
-function isoWeek(d: Date): number {
+export function isoWeek(d: Date): number {
     const tmp = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
     tmp.setUTCDate(tmp.getUTCDate() + 4 - (tmp.getUTCDay() || 7));
     const yearStart = new Date(Date.UTC(tmp.getUTCFullYear(), 0, 1));
@@ -22,7 +23,7 @@ interface WeekOption {
     to: string;
 }
 
-function buildWeekOptions(projectStart: Date, today: Date): WeekOption[] {
+export function buildWeekOptions(projectStart: Date, today: Date): WeekOption[] {
     const options: WeekOption[] = [];
     const cur = new Date(projectStart);
     const day = cur.getUTCDay() || 7;
@@ -44,7 +45,7 @@ function buildWeekOptions(projectStart: Date, today: Date): WeekOption[] {
     return options.reverse();
 }
 
-function buildVlwOptions(projectStart: Date, today: Date): WeekOption[] {
+export function buildVlwOptions(projectStart: Date, today: Date): WeekOption[] {
     const options: WeekOption[] = [];
     // find the first Tuesday on or after projectStart
     const cur = new Date(projectStart);
@@ -70,7 +71,7 @@ function buildVlwOptions(projectStart: Date, today: Date): WeekOption[] {
 
 
 
-const PROJECT_START = new Date('2026-09-14');
+export const PROJECT_START = new Date('2026-09-14');
 
 interface GroupOption {
     name: string;

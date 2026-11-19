@@ -29,7 +29,7 @@ export interface MemberGamification {
     peakWeekHours: number;
 }
 
-const BADGES: Array<{
+export const BADGES: Array<{
     id: string;
     label: string;
     description: string;
@@ -45,7 +45,7 @@ const BADGES: Array<{
     { id: 'unstoppable',   label: 'Unaufhaltbar',   description: '20+ Stunden in einer Woche',     icon: '🚀', test: (_, _w, p) => p >= 20 },
 ];
 
-function computeLevelInfo(xp: number): LevelInfo {
+export function computeLevelInfo(xp: number): LevelInfo {
     let level = 1;
     let remaining = xp;
 
@@ -81,6 +81,7 @@ function computeLevelInfo(xp: number): LevelInfo {
         level = tier.max + 1;
     }
 
+    /* v8 ignore next 2 -- unreachable: the Legende tier (max=Infinity) always returns inside the loop */
     return { level, tier: 'Legende', tierColor: '#A855F7', xp, xpForNextLevel: 500, xpPercent: 0 };
 }
 
@@ -104,7 +105,7 @@ export function calculateGamification(timelogs: Timelog[]): MemberGamification[]
         const totalHours = data.seconds / 3600;
         const weekValues = Object.values(data.weeklyHours);
         const activeWeeks = weekValues.filter(h => h > 0).length;
-        const peakWeekHours = weekValues.length > 0 ? Math.max(...weekValues) : 0;
+        const peakWeekHours = weekValues.length > 0 ? Math.max(...weekValues) : /* v8 ignore next -- every member has ≥1 logged week */ 0;
 
         // XP: 20 per hour + 25 per active week
         const xp = Math.floor(totalHours * 20 + activeWeeks * 25);
