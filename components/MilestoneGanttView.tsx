@@ -336,27 +336,27 @@ export default function MilestoneGanttView({ issues }: { issues: Issue[] }) {
                             <div
                                 key={row.id}
                                 style={{ height: ROW_H, paddingLeft: row.isMilestone ? 6 : 28 }}
-                                className={`flex items-center gap-1.5 border-b border-border/50 text-xs transition-colors ${hovered === row.id ? 'bg-accent/40' : row.isMilestone ? 'bg-muted/10' : i % 2 === 0 ? 'bg-card' : 'bg-muted/20'}`}
+                                className={`flex items-center gap-1.5 border-b border-border/50 text-xs transition-colors ${row.isMilestone ? 'cursor-pointer' : ''} ${hovered === row.id ? 'bg-accent/40' : row.isMilestone ? 'bg-muted/10' : i % 2 === 0 ? 'bg-card' : 'bg-muted/20'}`}
                                 onMouseEnter={() => setHovered(row.id)}
                                 onMouseLeave={() => setHovered(null)}
+                                onClick={row.isMilestone ? () => toggleCollapse(row.milestoneTitle) : undefined}
                             >
                                 {row.isMilestone ? (
                                     <>
-                                        <button
-                                            type="button"
-                                            onClick={() => toggleCollapse(row.milestoneTitle)}
-                                            className="flex-shrink-0 hover:opacity-70 transition-opacity"
+                                        <span
+                                            className="flex-shrink-0"
                                             title={isCollapsed ? 'Ausklappen' : 'Einklappen'}
                                         >
                                             {isCollapsed
                                                 ? <ChevronRight className="w-3.5 h-3.5" style={{ color: MILESTONE_COLOR }} />
                                                 : <ChevronDown className="w-3.5 h-3.5" style={{ color: MILESTONE_COLOR }} />}
-                                        </button>
+                                        </span>
                                         {row.webUrl ? (
                                             <a
                                                 href={row.webUrl}
                                                 target="_blank"
                                                 rel="noreferrer"
+                                                onClick={e => e.stopPropagation()}
                                                 className={`truncate font-semibold hover:underline ${row.state === 'closed' ? 'opacity-60' : ''}`}
                                                 style={{ color: MILESTONE_COLOR }}
                                                 title={row.title}
