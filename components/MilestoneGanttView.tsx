@@ -84,7 +84,7 @@ interface MilestoneGroup {
 const UNDATED_KEY = '__no_milestone__';
 
 // milestone webPath is relative (e.g. "/group/-/milestones/3"); resolve against an issue's absolute origin
-function milestoneUrl(issues: Issue[]): string | null {
+export function milestoneUrl(issues: Issue[]): string | null {
     const ms = issues[0]?.milestone;
     if (!ms?.webPath) return null;
     const ref = issues.find(i => i.webUrl)?.webUrl;
@@ -96,7 +96,7 @@ function milestoneUrl(issues: Issue[]): string | null {
     }
 }
 
-function buildGroups(issues: Issue[]): MilestoneGroup[] {
+export function buildGroups(issues: Issue[]): MilestoneGroup[] {
     // dedupe: the same issue can arrive from multiple group paths (includeSubgroups)
     const seen = new Set<string>();
     const uniqueIssues = issues.filter(i => {
@@ -139,7 +139,7 @@ function buildGroups(issues: Issue[]): MilestoneGroup[] {
     return groups;
 }
 
-function groupsToRows(groups: MilestoneGroup[], showUndated: boolean, collapsed: Set<string>): GanttRow[] {
+export function groupsToRows(groups: MilestoneGroup[], showUndated: boolean, collapsed: Set<string>): GanttRow[] {
     const rows: GanttRow[] = [];
     for (const g of groups) {
         if (!g.dated && !showUndated) continue;

@@ -191,6 +191,25 @@ Cloudflare handles HTTPS. The dashboard's session cookies are already configured
 
 ---
 
+## Testing
+
+The logic layer and the core components are covered by a [Vitest](https://vitest.dev/) suite (Testing Library + jsdom for component render/interaction tests).
+
+```bash
+npm test              # run the full suite once
+npm run test:watch    # watch mode
+npm run test:coverage # run with coverage + enforced per-file gate
+```
+
+What is covered:
+
+- **Data-processing / logic** (`lib/processData.ts`, `lib/gamification.ts`, `lib/auth*.ts`, `lib/gitlab.ts`, `lib/generateReport.ts`, `lib/utils.ts`, `config/dashboardConfig.ts`) — unit-tested at ~100% lines/functions, including edge cases (empty inputs, null dates, division-by-zero guards, `/spend` note parsing, category resolution, sprint/week bucketing, token round-trips, rate limiting, GraphQL pagination + fetch mocking).
+- **Core components** (`MilestoneGanttView`, `GanttView`, `EpicGraph`, `DateFilterBar`) — their internal helpers are unit-tested, plus render/interaction tests (view toggles, collapse, filters, milestone links, no duplicate-key warnings).
+
+`npm run test:coverage` enforces a **per-file coverage gate** (configured in `vitest.config.mts`) — the run fails if a tracked file drops below its threshold. Test fixtures live in `test/fixtures.ts`; shared setup in `test/setup.ts`.
+
+---
+
 ## Troubleshooting
 
 | Symptom | Fix |
@@ -210,6 +229,7 @@ Cloudflare handles HTTPS. The dashboard's session cookies are already configured
 - [Tailwind CSS](https://tailwindcss.com/) + [shadcn/ui](https://ui.shadcn.com/)
 - [date-fns](https://date-fns.org/) — ISO week + VLW calculations
 - [bcryptjs](https://github.com/dcodeIO/bcrypt.js) — password hashing
+- [Vitest](https://vitest.dev/) + [Testing Library](https://testing-library.com/) — unit + component tests with coverage gate
 - GitLab GraphQL API — timelogs, issues, epics, milestones
 
 ---

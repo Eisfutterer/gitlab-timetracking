@@ -60,7 +60,7 @@ interface GanttRow {
     progress: number; // 0–1
 }
 
-function collectRows(epic: Epic, depth: number, today: Date): GanttRow[] {
+export function collectRows(epic: Epic, depth: number, today: Date): GanttRow[] {
     const rows: GanttRow[] = [];
 
     // derive epic color from dominant issue category

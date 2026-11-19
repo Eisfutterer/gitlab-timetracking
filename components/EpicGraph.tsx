@@ -19,7 +19,7 @@ function getIssueColor(issue: EpicIssue): string {
 }
 
 // Derive the dominant category color of an epic from its issues (recursive)
-function getEpicColor(epic: Epic): string {
+export function getEpicColor(epic: Epic): string {
     const counts: Record<string, number> = {};
     function tally(e: Epic) {
         e.issues.nodes.forEach(issue => {
@@ -184,7 +184,7 @@ interface TreeNode {
     children: TreeNode[];
 }
 
-function epicToTreeNode(epic: Epic, depth: number): TreeNode {
+export function epicToTreeNode(epic: Epic, depth: number): TreeNode {
     const words = epic.title.trim().split(/\s+/);
     const label = words.length >= 2
         ? (words[0][0] + words[1][0]).toUpperCase()
@@ -229,7 +229,7 @@ const LABEL_H = 18; // px below circle for label text
 
 interface LayoutNode { node: TreeNode; x: number; y: number; expanded: boolean }
 
-function layoutTree(root: TreeNode, expandedIds: Set<string>) {
+export function layoutTree(root: TreeNode, expandedIds: Set<string>) {
     const nodes: LayoutNode[] = [];
 
     function subtreeWidth(n: TreeNode): number {
