@@ -1,6 +1,6 @@
 # GitLab Time Tracking Dashboard
 
-A self-hosted web dashboard for visualizing GitLab issue-based time tracking data — built for the Software Engineering I course at DHBW Stuttgart (TINF25B6, Group 4 — MergeConflict), but adaptable to any GitLab group.
+A self-hosted web dashboard for visualizing GitLab issue-based time tracking data — built for the Software Engineering I course at DHBW Karlsruhe (TINF25B6, Group 4 — MergeConflict), but adaptable to any GitLab group.
 
 ![Dashboard Demo](public/demo.gif)
 
@@ -10,7 +10,7 @@ A self-hosted web dashboard for visualizing GitLab issue-based time tracking dat
 
 | Section | Description |
 |---|---|
-| **Epics & Issues** | Collapsible card view + interactive SVG tree with category-colored nodes |
+| **Epics & Issues** | Four views of the epic/issue hierarchy: collapsible cards, interactive SVG tree, issue Gantt timeline, and a milestone Gantt (milestone bars with nested issues, packed milestone overview strip, collapsible per-milestone rows, links to the GitLab milestone pages) |
 | **Project Overview** | KPI tiles: total hours, sprints, average velocity, category distribution |
 | **Activity** | GitHub-style contribution heatmap |
 | **Timeline** | Weekly hours per person (line chart) + category trend (stacked area) |
@@ -19,9 +19,7 @@ A self-hosted web dashboard for visualizing GitLab issue-based time tracking dat
 | **Collaboration** | Team collaboration graph, average team size per category |
 | **Issues** | Complexity scatter, time estimate vs. actual, cumulative flow diagram (CFD) |
 | **Leaderboard** | Ranked team members with modal detail view |
-| **Gamification** | XP + level + badge system per team member |
 | **Group Comparison** | Cross-group comparison chart |
-| **Gantt** | Issue timeline view |
 | **Presentation Mode** | Fullscreen slide-through with keyboard navigation |
 | **Report Export** | Self-contained HTML report download |
 
@@ -212,7 +210,7 @@ Cloudflare handles HTTPS. The dashboard's session cookies are already configured
 - [Tailwind CSS](https://tailwindcss.com/) + [shadcn/ui](https://ui.shadcn.com/)
 - [date-fns](https://date-fns.org/) — ISO week + VLW calculations
 - [bcryptjs](https://github.com/dcodeIO/bcrypt.js) — password hashing
-- GitLab GraphQL API — timelogs, issues, epics
+- GitLab GraphQL API — timelogs, issues, epics, milestones
 
 ---
 
