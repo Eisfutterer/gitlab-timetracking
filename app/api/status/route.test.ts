@@ -30,8 +30,13 @@ async function callGet(group?: string): Promise<SystemStatus> {
     return (await res.json()) as SystemStatus;
 }
 
+// Build a groupMembers node list from usernames (bots have "_bot_").
+function members(...usernames: string[]) {
+    return { nodes: usernames.map(username => ({ user: { username } })) };
+}
+
 const singleGroupOk = {
-    data: { group: { issues: { count: 42 }, epics: { count: 5 }, groupMembers: { nodes: [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }, { id: 6 }, { id: 7 }] } } },
+    data: { group: { issues: { count: 42 }, epics: { count: 5 }, groupMembers: members('a', 'b', 'c', 'd', 'e', 'f', 'g') } },
 };
 
 describe('GET /api/status', () => {
@@ -57,7 +62,26 @@ describe('GET /api/status', () => {
             // the query must target the specific group, not descendantGroups
             const body = JSON.parse((fn.mock.calls[0][1] as RequestInit).body as string);
             expect(body.query).toContain('g4');
-            expect(body.query).not.toContain('descendantGroups');        });
+            expect(body.query).not.toContain('descendantGroups');
+        });
+
+        it('excludes bot accounts from the member count', async () => {
+            mockFetchOnce(() => jsonResponse({
+                data: { group: { issues: { count: 1 }, epics: { count: 1 }, groupMembers: members('alice', 'bob', 'project_123_bot_abc', 'wiki_bot_xyz') } },
+            }));
+            const s = await callGet('g4');
+            // 4 members, 2 are bots → 2 real members
+            expect(s.data.members).toBe(2);
+        });
+
+        it('handles members with no username defensively', async () => {
+            mockFetchOnce(() => jsonResponse({
+                data: { group: { issues: { count: 0 }, epics: { count: 0 }, groupMembers: { nodes: [{ user: null }, { user: { username: 'real' } }] } } },
+            }));
+            const s = await callGet('g4');
+            // null user is kept (not a bot); counts as a member
+            expect(s.data.members).toBe(2);
+        });
 
         it('whitespace-only group is treated as "all groups"', async () => {
             mockFetchOnce(() => jsonResponse({ data: { group: { descendantGroups: { nodes: [] } } } }));
@@ -74,8 +98,8 @@ describe('GET /api/status', () => {
                     group: {
                         descendantGroups: {
                             nodes: [
-                                { issues: { count: 10 }, epics: { count: 2 }, groupMembers: { nodes: [{ id: 1 }, { id: 2 }] } },
-                                { issues: { count: 5 }, epics: { count: 1 }, groupMembers: { nodes: [{ id: 3 }] } },
+                                { issues: { count: 10 }, epics: { count: 2 }, groupMembers: members('a', 'b') },
+                                { issues: { count: 5 }, epics: { count: 1 }, groupMembers: members('c') },
                             ],
                         },
                     },

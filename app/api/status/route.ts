@@ -45,15 +45,23 @@ interface ProbeResult {
 const GROUP_FIELDS = `
     issues { count }
     epics { count }
-    groupMembers(relations: [DIRECT], first: 100) { nodes { id } }
+    groupMembers(relations: [DIRECT], first: 100) { nodes { user { username } } }
 `;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function countRealMembers(groupMembers: any): number | null {
+    const nodes = groupMembers?.nodes;
+    if (!Array.isArray(nodes)) return null;
+    // Exclude GitLab bot accounts (Wiki, VS Code, LLM-Audit, …), matching lib/gitlab.ts fetchGroupMembers.
+    return nodes.filter((n: { user?: { username?: string } }) => !n.user?.username?.includes('_bot_')).length;
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function parseGroupCounts(g: any): Counts {
     return {
         issues: g?.issues?.count ?? null,
         epics: g?.epics?.count ?? null,
-        members: Array.isArray(g?.groupMembers?.nodes) ? g.groupMembers.nodes.length : null,
+        members: countRealMembers(g?.groupMembers),
     };
 }
 
