@@ -22,6 +22,7 @@ A self-hosted web dashboard for visualizing GitLab issue-based time tracking dat
 | **Group Comparison** | Cross-group comparison chart |
 | **Presentation Mode** | Fullscreen slide-through with keyboard navigation |
 | **Report Export** | Self-contained HTML report download |
+| **System Status** | Toolkit popup (wrench button, bottom-left) showing live GitLab API reachability, response time, token validity, and issue/epic/member counts for the currently selected group scope; auto-refreshes every 30s |
 
 ### Date filter modes
 
@@ -203,8 +204,8 @@ npm run test:coverage # run with coverage + enforced per-file gate
 
 What is covered:
 
-- **Data-processing / logic** (`lib/processData.ts`, `lib/gamification.ts`, `lib/auth*.ts`, `lib/gitlab.ts`, `lib/generateReport.ts`, `lib/utils.ts`, `config/dashboardConfig.ts`) — unit-tested at ~100% lines/functions, including edge cases (empty inputs, null dates, division-by-zero guards, `/spend` note parsing, category resolution, sprint/week bucketing, token round-trips, rate limiting, GraphQL pagination + fetch mocking).
-- **Core components** (`MilestoneGanttView`, `GanttView`, `EpicGraph`, `DateFilterBar`) — their internal helpers are unit-tested, plus render/interaction tests (view toggles, collapse, filters, milestone links, no duplicate-key warnings).
+- **Data-processing / logic** (`lib/processData.ts`, `lib/gamification.ts`, `lib/auth*.ts`, `lib/gitlab.ts`, `lib/generateReport.ts`, `lib/utils.ts`, `config/dashboardConfig.ts`, `app/api/status/route.ts`) — unit-tested at ~100% lines/functions, including edge cases (empty inputs, null dates, division-by-zero guards, `/spend` note parsing, category resolution, sprint/week bucketing, token round-trips, rate limiting, GraphQL pagination + fetch mocking, status probe online/offline/401 handling).
+- **Core components** (`MilestoneGanttView`, `GanttView`, `EpicGraph`, `DateFilterBar`, `SystemStatus`) — their internal helpers are unit-tested, plus render/interaction tests (view toggles, collapse, filters, milestone links, no duplicate-key warnings, status modal open/close/refresh).
 
 `npm run test:coverage` enforces a **per-file coverage gate** (configured in `vitest.config.mts`) — the run fails if a tracked file drops below its threshold. Test fixtures live in `test/fixtures.ts`; shared setup in `test/setup.ts`.
 

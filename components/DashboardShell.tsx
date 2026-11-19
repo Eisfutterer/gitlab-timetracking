@@ -7,7 +7,7 @@ import { ChartData } from '../lib/processData';
 import { Issue, Epic } from '../types/dashboard';
 import {
     BarChart2, Moon, Sun, RefreshCw, FileDown, Presentation,
-    ChevronLeft, ChevronRight,
+    ChevronLeft, ChevronRight, Wrench,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAutoRefresh } from '@/lib/hooks';
@@ -22,6 +22,7 @@ import DetailedActivity from './DetailedActivity';
 import EpicGraph from './EpicGraph';
 import Leaderboard from './Leaderboard';
 import GroupComparison from './GroupComparison';
+import SystemStatus from './SystemStatus';
 import PresentationControls from './PresentationControls';
 import DateFilterBar from './DateFilterBar';
 import { GITLAB_CONFIG } from '@/config/dashboardConfig';
@@ -72,6 +73,7 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
     const [collapsed, setCollapsed] = useState(false);
     const [presentationMode, setPresentationMode] = useState(false);
     const [presentationIndex, setPresentationIndex] = useState(0);
+    const [statusOpen, setStatusOpen] = useState(false);
     const { manualRefresh, isRefreshing } = useAutoRefresh(false);
 
     // Scrollspy — update activeSection as sections enter the viewport
@@ -295,6 +297,14 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
                         </button>
 
                         <button
+                            onClick={() => setStatusOpen(true)}
+                            title="System-Status"
+                            className="rounded-md p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors"
+                        >
+                            <Wrench className="h-4 w-4" />
+                        </button>
+
+                        <button
                             onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
                             title="Dark mode umschalten"
                             className="rounded-md p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors"
@@ -324,6 +334,8 @@ const DashboardShell: React.FC<DashboardShellProps> = ({
                     © {new Date().getFullYear()} G4 MergeConflict · Software Engineering I · TINF25B6
                 </footer>
             </main>
+
+            {statusOpen && <SystemStatus onClose={() => setStatusOpen(false)} />}
         </div>
     );
 };
