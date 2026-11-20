@@ -14,6 +14,7 @@ export interface Issue {
     webUrl: string;
     state: 'opened' | 'closed';
     createdAt: string;
+    closedAt: string | null;
     description: string | null;
     startDate: string | null;
     dueDate: string | null;

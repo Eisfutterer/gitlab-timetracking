@@ -70,7 +70,7 @@ async function fetchIssuesForGroup(groupPath: string): Promise<Issue[]> {
                 group(fullPath: "${groupPath}") {
                     issues(first: 100, includeSubgroups: true, after: ${endCursor ? `"${endCursor}"` : 'null'}) {
                         nodes {
-                            title iid state createdAt webUrl
+                            title iid state createdAt closedAt webUrl
                             description startDate dueDate
                             assignees { nodes { name username } }
                             labels { nodes { title } }

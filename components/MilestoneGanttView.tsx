@@ -162,6 +162,23 @@ export function groupsToRows(groups: MilestoneGroup[], showUndated: boolean, col
         if (collapsed.has(g.title)) continue;
 
         for (const issue of g.issues) {
+            // Default to the milestone span, but tighten it to the issue's own
+            // lifetime where that falls inside the milestone window:
+            //  - start at createdAt if it lies between milestone start and end
+            //  - end at closedAt if it lies between milestone start and end
+            let start = g.start;
+            let end = g.end;
+            if (g.start && g.end) {
+                const created = parseDate(issue.createdAt);
+                if (created && created > g.start && created < g.end) start = created;
+
+                const closed = parseDate(issue.closedAt);
+                if (closed && closed > g.start && closed < g.end) end = closed;
+
+                // guard against an inverted span (e.g. createdAt after closedAt)
+                if (start && end && start > end) start = end;
+            }
+
             rows.push({
                 id: `ms-${g.title}-issue-${issue.webUrl}`,
                 title: issue.title,
@@ -170,9 +187,8 @@ export function groupsToRows(groups: MilestoneGroup[], showUndated: boolean, col
                 color: getIssueColor(issue),
                 isMilestone: false,
                 state: issue.state,
-                // issues inherit the milestone span (milestone dates only)
-                start: g.start,
-                end: g.end,
+                start,
+                end,
                 assignees: issue.assignees?.nodes?.map(a => a.name) ?? [],
                 milestoneTitle: g.title,
                 dated: g.dated,

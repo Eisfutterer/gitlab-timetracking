@@ -149,12 +149,58 @@ describe('groupsToRows', () => {
         expect(allClosed.find(r => r.isMilestone)!.state).toBe('closed');
     });
 
-    it('lets issues inherit the milestone span', () => {
-        const groups = buildGroups([datedIssue]);
-        const rows = groupsToRows(groups, false, new Set());
+    it('lets issues inherit the full milestone span when created before and still open', () => {
+        // createdAt before milestone start, no closedAt → full milestone span
+        const issue = makeIssue({
+            webUrl: 'full', state: 'opened', createdAt: '2026-10-01T00:00:00Z', closedAt: null,
+            milestone: makeMilestone({ title: 'Full', startDate: '2026-11-03', dueDate: '2026-11-09' }),
+        });
+        const rows = groupsToRows(buildGroups([issue]), false, new Set());
         const ms = rows.find(r => r.isMilestone)!;
-        const issue = rows.find(r => !r.isMilestone)!;
-        expect(issue.start!.getTime()).toBe(ms.start!.getTime());
-        expect(issue.end!.getTime()).toBe(ms.end!.getTime());
+        const row = rows.find(r => !r.isMilestone)!;
+        expect(row.start!.getTime()).toBe(ms.start!.getTime());
+        expect(row.end!.getTime()).toBe(ms.end!.getTime());
+    });
+
+    it('starts the issue bar at createdAt when it falls inside the milestone window', () => {
+        const issue = makeIssue({
+            webUrl: 'cin', state: 'opened', createdAt: '2026-11-05T00:00:00Z', closedAt: null,
+            milestone: makeMilestone({ title: 'CreatedInside', startDate: '2026-11-03', dueDate: '2026-11-09' }),
+        });
+        const row = groupsToRows(buildGroups([issue]), false, new Set()).find(r => !r.isMilestone)!;
+        expect(row.start!.toISOString().slice(0, 10)).toBe('2026-11-05');
+        // end stays at milestone due date (still open)
+        expect(row.end!.toISOString().slice(0, 10)).toBe('2026-11-09');
+    });
+
+    it('ends the issue bar at closedAt when it falls inside the milestone window', () => {
+        const issue = makeIssue({
+            webUrl: 'cout', state: 'closed', createdAt: '2026-10-01T00:00:00Z', closedAt: '2026-11-06T00:00:00Z',
+            milestone: makeMilestone({ title: 'ClosedInside', startDate: '2026-11-03', dueDate: '2026-11-09' }),
+        });
+        const row = groupsToRows(buildGroups([issue]), false, new Set()).find(r => !r.isMilestone)!;
+        expect(row.start!.toISOString().slice(0, 10)).toBe('2026-11-03'); // created before → milestone start
+        expect(row.end!.toISOString().slice(0, 10)).toBe('2026-11-06');   // closed inside → closedAt
+    });
+
+    it('clamps both ends when created and closed both fall inside the window', () => {
+        const issue = makeIssue({
+            webUrl: 'both', state: 'closed', createdAt: '2026-11-04T00:00:00Z', closedAt: '2026-11-07T00:00:00Z',
+            milestone: makeMilestone({ title: 'Both', startDate: '2026-11-03', dueDate: '2026-11-09' }),
+        });
+        const row = groupsToRows(buildGroups([issue]), false, new Set()).find(r => !r.isMilestone)!;
+        expect(row.start!.toISOString().slice(0, 10)).toBe('2026-11-04');
+        expect(row.end!.toISOString().slice(0, 10)).toBe('2026-11-07');
+    });
+
+    it('ignores createdAt/closedAt that fall outside the milestone window', () => {
+        const issue = makeIssue({
+            webUrl: 'outside', state: 'closed', createdAt: '2026-10-01T00:00:00Z', closedAt: '2026-12-01T00:00:00Z',
+            milestone: makeMilestone({ title: 'Outside', startDate: '2026-11-03', dueDate: '2026-11-09' }),
+        });
+        const row = groupsToRows(buildGroups([issue]), false, new Set()).find(r => !r.isMilestone)!;
+        // both out of range → full milestone span
+        expect(row.start!.toISOString().slice(0, 10)).toBe('2026-11-03');
+        expect(row.end!.toISOString().slice(0, 10)).toBe('2026-11-09');
     });
 });

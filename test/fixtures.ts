@@ -20,6 +20,7 @@ export function makeIssue(o: Partial<Issue> = {}): Issue {
         webUrl: 'https://gitlab.com/group/project/-/issues/1',
         state: 'opened',
         createdAt: '2026-11-03T08:00:00Z',
+        closedAt: null,
         description: null,
         startDate: null,
         dueDate: null,
