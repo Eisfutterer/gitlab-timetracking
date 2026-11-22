@@ -10,7 +10,7 @@ A self-hosted web dashboard for visualizing GitLab issue-based time tracking dat
 
 | Section | Description |
 |---|---|
-| **Epics & Issues** | Four views of the epic/issue hierarchy: collapsible cards, interactive SVG tree, issue Gantt timeline, and a milestone Gantt (milestone bars with nested issues, packed milestone overview strip, collapsible per-milestone rows, links to the GitLab milestone pages) |
+| **Epics & Issues** | Five views of the epic/issue hierarchy: collapsible cards, interactive SVG tree, issue Gantt timeline, a **Gantt v2** (falls back to the assigned milestone's dates when an issue has no own start/due date, so epics propagate a real span up from their children; epic & issue bars link to GitLab), and a milestone Gantt (milestone bars with nested issues, packed milestone overview strip, collapsible per-milestone rows, links to the GitLab milestone pages) |
 | **Project Overview** | KPI tiles: total hours, sprints, average velocity, category distribution |
 | **Activity** | GitHub-style contribution heatmap |
 | **Timeline** | Weekly hours per person (line chart) + category trend (stacked area) |
@@ -205,7 +205,7 @@ npm run test:coverage # run with coverage + enforced per-file gate
 What is covered:
 
 - **Data-processing / logic** (`lib/processData.ts`, `lib/gamification.ts`, `lib/auth*.ts`, `lib/gitlab.ts`, `lib/generateReport.ts`, `lib/utils.ts`, `config/dashboardConfig.ts`, `app/api/status/route.ts`) — unit-tested at ~100% lines/functions, including edge cases (empty inputs, null dates, division-by-zero guards, `/spend` note parsing, category resolution, sprint/week bucketing, token round-trips, rate limiting, GraphQL pagination + fetch mocking, status probe online/offline/401 handling).
-- **Core components** (`MilestoneGanttView`, `GanttView`, `EpicGraph`, `DateFilterBar`, `SystemStatus`) — their internal helpers are unit-tested, plus render/interaction tests (view toggles, collapse, filters, milestone links, no duplicate-key warnings, status modal open/close/refresh).
+- **Core components** (`MilestoneGanttView`, `GanttView`, `GanttViewV2`, `EpicGraph`, `DateFilterBar`, `SystemStatus`) — their internal helpers are unit-tested, plus render/interaction tests (view toggles, collapse, filters, milestone links, milestone date fallback + epic span propagation, no duplicate-key warnings, status modal open/close/refresh).
 
 `npm run test:coverage` enforces a **per-file coverage gate** (configured in `vitest.config.mts`) — the run fails if a tracked file drops below its threshold. Test fixtures live in `test/fixtures.ts`; shared setup in `test/setup.ts`.
 

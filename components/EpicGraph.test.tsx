@@ -43,7 +43,10 @@ describe('EpicGraph render', () => {
         // tree renders an SVG
         expect(document.querySelector('svg')).toBeTruthy();
 
-        await user.click(screen.getByRole('button', { name: /Gantt/ }));
+        await user.click(screen.getByRole('button', { name: 'Gantt' }));
+        expect(screen.getByText('Epic / Issue')).toBeInTheDocument();
+
+        await user.click(screen.getByRole('button', { name: 'Gantt v2' }));
         expect(screen.getByText('Epic / Issue')).toBeInTheDocument();
 
         await user.click(screen.getByRole('button', { name: /Meilensteine/ }));
@@ -70,7 +73,8 @@ describe('EpicGraph render', () => {
         render(<EpicGraph epics={epics} issues={issues} />);
 
         await user.click(screen.getByRole('button', { name: /Baum/ }));
-        await user.click(screen.getByRole('button', { name: /Gantt/ }));
+        await user.click(screen.getByRole('button', { name: 'Gantt' }));
+        await user.click(screen.getByRole('button', { name: 'Gantt v2' }));
         await user.click(screen.getByRole('button', { name: /Meilensteine/ }));
         await user.click(screen.getByRole('button', { name: /Karten/ }));
 

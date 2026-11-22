@@ -35,6 +35,7 @@ export interface EpicIssue {
     closedAt: string | null;
     startDate: string | null;
     dueDate: string | null;
+    milestone: Milestone | null;
     labels: { nodes: Array<{title: string}> };
     assignees: { nodes: Array<{ name: string; username: string }> };
     timeEstimate: number;
@@ -45,6 +46,7 @@ export interface Epic {
     id: string;
     iid: string;
     title: string;
+    webUrl: string;
     state: 'opened' | 'closed';
     createdAt: string;
     closedAt: string | null;

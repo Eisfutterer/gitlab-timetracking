@@ -216,12 +216,13 @@ async function fetchEpicsForGroup(groupPath: string): Promise<Epic[]> {
                 group(fullPath: "${groupPath}") {
                     epics(first: 50, after: ${endCursor ? `"${endCursor}"` : 'null'}) {
                         nodes {
-                            id iid title state createdAt closedAt
+                            id iid title state createdAt closedAt webUrl
                             parent { id }
                             issues {
                                 nodes {
                                     title iid state webUrl
                                     createdAt closedAt startDate dueDate
+                                    milestone { title startDate dueDate webPath }
                                     labels { nodes { title } }
                                     assignees { nodes { name username } }
                                     timeEstimate totalTimeSpent

@@ -4,8 +4,9 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Epic, EpicIssue, Issue } from '../types/dashboard';
 import { COLORS, resolveCategoryLabel } from '../config/dashboardConfig';
 import CollapsibleCard from './CollapsibleCard';
-import { List, GitBranch, GanttChart, Milestone } from 'lucide-react';
+import { List, GitBranch, GanttChart, Milestone, CalendarRange } from 'lucide-react';
 import GanttView from './GanttView';
+import GanttViewV2 from './GanttViewV2';
 import MilestoneGanttView from './MilestoneGanttView';
 
 // ── helpers ───────────────────────────────────────────────────────────────────
@@ -496,7 +497,7 @@ function SvgTree({ roots }: { roots: TreeNode[] }) {
 // ── Root ──────────────────────────────────────────────────────────────────────
 
 export default function EpicGraph({ epics, issues }: { epics: Epic[]; issues: Issue[] }) {
-    const [view, setView] = useState<'card' | 'tree' | 'gantt' | 'milestones'>('card');
+    const [view, setView] = useState<'card' | 'tree' | 'gantt' | 'ganttv2' | 'milestones'>('card');
     const [showClosed, setShowClosed] = useState(false);
 
     // Filter closed issues out of epics recursively when showClosed is false
@@ -554,6 +555,9 @@ export default function EpicGraph({ epics, issues }: { epics: Epic[]; issues: Is
                         <button onClick={() => setView('gantt')} className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${view === 'gantt' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
                             <GanttChart className="w-3.5 h-3.5" /> Gantt
                         </button>
+                        <button onClick={() => setView('ganttv2')} className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${view === 'ganttv2' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
+                            <CalendarRange className="w-3.5 h-3.5" /> Gantt v2
+                        </button>
                         <button onClick={() => setView('milestones')} className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${view === 'milestones' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
                             <Milestone className="w-3.5 h-3.5" /> Meilensteine
                         </button>
@@ -574,6 +578,8 @@ export default function EpicGraph({ epics, issues }: { epics: Epic[]; issues: Is
             {view === 'tree' && visibleEpics.length > 0 && <SvgTree roots={treeRoots} />}
 
             {view === 'gantt' && <GanttView epics={visibleEpics} />}
+
+            {view === 'ganttv2' && <GanttViewV2 epics={visibleEpics} />}
 
             {view === 'milestones' && <MilestoneGanttView issues={visibleIssues} />}
         </CollapsibleCard>

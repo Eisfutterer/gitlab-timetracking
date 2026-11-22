@@ -31,6 +31,7 @@ export default defineConfig({
                 'app/api/status/route.ts',
                 'components/MilestoneGanttView.tsx',
                 'components/GanttView.tsx',
+                'components/GanttViewV2.tsx',
                 'components/EpicGraph.tsx',
                 'components/DateFilterBar.tsx',
                 'components/SystemStatus.tsx',
@@ -50,6 +51,7 @@ export default defineConfig({
                 // Components — SVG/markup branches are not all meaningfully reachable.
                 'components/MilestoneGanttView.tsx': { lines: 90, functions: 90, statements: 90, branches: 80 },
                 'components/GanttView.tsx': { lines: 85, functions: 85, statements: 85, branches: 75 },
+                'components/GanttViewV2.tsx': { lines: 85, functions: 80, statements: 85, branches: 70 },
                 'components/EpicGraph.tsx': { lines: 80, functions: 80, statements: 80, branches: 70 },
                 'components/DateFilterBar.tsx': { lines: 85, functions: 85, statements: 85, branches: 75 },
                 'components/SystemStatus.tsx': { lines: 85, functions: 85, statements: 85, branches: 75 },
