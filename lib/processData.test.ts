@@ -207,9 +207,23 @@ describe('processCFD', () => {
     });
 
     it('selectedFrom creates prev/selected/next empty week slots', () => {
-        const cfd = processCFD([], new Date('2026-11-10T00:00:00Z'));
+        const cfd = processCFD([], 1, new Date('2026-11-10T00:00:00Z'));
         expect(cfd).toHaveLength(3);
         cfd.forEach(p => { expect(p.opened).toBe(0); expect(p.closed).toBe(0); });
+    });
+
+    it('groups by Tuesday-start weeks and uses VLW labels when weekStartsOn=2', () => {
+        const issues = [
+            // Tue 2026-11-24 and the following Mon 2026-11-30 belong to the SAME VLW week
+            makeIssue({ iid: '1', state: 'opened', createdAt: '2026-11-24T09:00:00Z' }),
+            makeIssue({ iid: '2', state: 'closed', createdAt: '2026-11-30T09:00:00Z' }),
+            // Tue 2026-12-01 starts the NEXT VLW week
+            makeIssue({ iid: '3', state: 'opened', createdAt: '2026-12-01T09:00:00Z' }),
+        ];
+        const cfd = processCFD(issues, 2);
+        expect(cfd).toHaveLength(2); // two Di–Mo buckets, not three Monday buckets
+        expect(cfd[0].date).toMatch(/^VLW /);
+        expect(cfd[0].opened).toBe(2); // the Tue + the Mon fall in one bucket
     });
 });
 
@@ -409,6 +423,19 @@ describe('processChartData', () => {
         expect(data.projectMetrics.averageVelocity).toBe(0); // 0-sprint guard
         // categoryDistribution hours all 0 (0-sprint guard)
         data.projectMetrics.categoryDistribution.forEach(c => expect(c.hours).toBe(0));
+    });
+
+    it('buckets a late-Monday UTC log on Monday in the heatmap (UTC, no Tuesday leak)', () => {
+        // regression: a Monday 23:30 UTC log must land on the Monday cell, not leak to
+        // Tuesday in a UTC+x server timezone (VLW weeks end Monday).
+        const logs: Timelog[] = [
+            makeTimelog({ user: { name: 'Alice' }, timeSpent: 3600, spentAt: '2026-11-09T23:30:00Z' }),
+        ];
+        const data = processChartData([], logs, undefined, undefined, 2);
+        // find the cell that carries the activity
+        const active = data.heatmapData.flat().filter(c => c.value > 0);
+        expect(active).toHaveLength(1);
+        expect(active[0].date).toBe('2026-11-09'); // Monday (UTC), not 2026-11-10
     });
 
     it('aggregates pie/bar/line for a single user with implementation label', () => {

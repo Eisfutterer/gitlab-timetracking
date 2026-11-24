@@ -67,7 +67,7 @@ const DetailedActivity: React.FC<DetailedActivityProps> = ({
                             <div className="flex items-start space-x-2">
                                 {/* Day labels on the left */}
                                 <div className="flex flex-col space-y-1 mr-2 w-8">
-                                    {['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map(day => (
+                                    {['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'].map(day => (
                                         <div key={day} className="h-6 text-xs text-muted-foreground leading-6">
                                             {day}
                                         </div>
